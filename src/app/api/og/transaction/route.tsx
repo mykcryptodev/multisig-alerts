@@ -106,30 +106,35 @@ async function getZapperAccountInfo(addresses: string[]): Promise<Record<string,
   }
 }
 
-// Function to decode ERC-20 approve transactions
-async function decodeERC20Approve(data: string, to: string, client: any, chain: any): Promise<{
+// Function to decode ERC-20 transactions (approve and transfer)
+async function decodeERC20Transaction(data: string, to: string, client: any, chain: any): Promise<{
   isApprove: boolean;
+  isTransfer: boolean;
   tokenName?: string;
   tokenSymbol?: string;
   spenderName?: string;
   spenderAddress?: string;
+  recipientName?: string;
+  recipientAddress?: string;
   amount?: string;
   formattedAmount?: string;
 } | null> {
   try {
-    // Check if this is an ERC-20 approve call (function signature: 0x095ea7b3)
-    if (!data.startsWith('0x095ea7b3')) {
-      return { isApprove: false };
+    const isApprove = data.startsWith('0x095ea7b3'); // approve(address,uint256)
+    const isTransfer = data.startsWith('0xa9059cbb'); // transfer(address,uint256)
+    
+    if (!isApprove && !isTransfer) {
+      return { isApprove: false, isTransfer: false };
     }
 
-    // Decode the approve function parameters
-    // approve(address spender, uint256 amount)
-    // data format: 0x095ea7b3 + 32 bytes spender + 32 bytes amount
-    if (data.length < 138) { // 10 chars for 0x095ea7b3 + 128 chars for params
-      return { isApprove: false };
+    // Both approve and transfer have the same parameter structure
+    // approve(address spender, uint256 amount) or transfer(address to, uint256 amount)
+    // data format: 0x[function_sig] + 32 bytes address + 32 bytes amount
+    if (data.length < 138) { // 10 chars for function sig + 128 chars for params
+      return { isApprove: false, isTransfer: false };
     }
 
-    const spenderAddress = '0x' + data.slice(34, 74); // Extract spender address
+    const targetAddress = '0x' + data.slice(34, 74); // Extract spender/recipient address
     const amountHex = data.slice(74, 138); // Extract amount
     const amountBigInt = BigInt('0x' + amountHex);
 
@@ -174,45 +179,46 @@ async function decodeERC20Approve(data: string, to: string, client: any, chain: 
       console.warn('Failed to format token amount:', error);
     }
 
-    // Try to get spender name using the same comprehensive logic as "To" address
-    let spenderName = formatAddress(spenderAddress);
+    // Try to get target address name (spender for approve, recipient for transfer)
+    let targetName = formatAddress(targetAddress);
+    const targetLabel = isApprove ? 'spender' : 'recipient';
     
     // 1. Try Thirdweb social profiles first
     try {
-      const spenderProfiles = await getSocialProfiles({
-        address: spenderAddress,
+      const targetProfiles = await getSocialProfiles({
+        address: targetAddress,
         client,
       });
       
-      const farcasterProfile = spenderProfiles.find(p => p.type === 'farcaster');
-      const lensProfile = spenderProfiles.find(p => p.type === 'lens');
-      const ensProfile = spenderProfiles.find(p => p.type === 'ens');
+      const farcasterProfile = targetProfiles.find(p => p.type === 'farcaster');
+      const lensProfile = targetProfiles.find(p => p.type === 'lens');
+      const ensProfile = targetProfiles.find(p => p.type === 'ens');
       
-      const bestSpenderProfile = farcasterProfile || lensProfile || ensProfile;
-      if (bestSpenderProfile?.name) {
-        spenderName = bestSpenderProfile.name;
+      const bestTargetProfile = farcasterProfile || lensProfile || ensProfile;
+      if (bestTargetProfile?.name) {
+        targetName = bestTargetProfile.name;
       }
     } catch (error) {
-      console.warn('Failed to fetch spender social profile:', error);
+      console.warn(`Failed to fetch ${targetLabel} social profile:`, error);
     }
 
-    // 2. If no social profile, try to get spender contract name
-    if (spenderName === formatAddress(spenderAddress)) {
+    // 2. If no social profile, try to get contract name (for approvals mainly)
+    if (targetName === formatAddress(targetAddress) && isApprove) {
       try {
-        const spenderContract = getContract({
+        const targetContract = getContract({
           client,
           chain,
-          address: spenderAddress,
+          address: targetAddress,
         });
         
-        const spenderNameResult = await readContract({
-          contract: spenderContract,
+        const targetNameResult = await readContract({
+          contract: targetContract,
           method: 'function name() view returns (string)',
           params: [],
         });
         
-        if (spenderNameResult) {
-          spenderName = spenderNameResult;
+        if (targetNameResult) {
+          targetName = targetNameResult;
         }
       } catch (error) {
         // Ignore - not all contracts have a name function
@@ -220,32 +226,46 @@ async function decodeERC20Approve(data: string, to: string, client: any, chain: 
     }
 
     // 3. If still no name, try Zapper as final fallback
-    if (spenderName === formatAddress(spenderAddress)) {
+    if (targetName === formatAddress(targetAddress)) {
       try {
-        const zapperInfo = await getZapperAccountInfo([spenderAddress]);
-        const zapperProfile = zapperInfo[spenderAddress];
+        const zapperInfo = await getZapperAccountInfo([targetAddress]);
+        const zapperProfile = zapperInfo[targetAddress];
         if (zapperProfile?.name && zapperProfile.source !== 'address') {
-          spenderName = zapperProfile.name;
-          console.log(`Found Zapper name for spender: ${zapperProfile.name} (${zapperProfile.source})`);
+          targetName = zapperProfile.name;
+          console.log(`Found Zapper name for ${targetLabel}: ${zapperProfile.name} (${zapperProfile.source})`);
         }
       } catch (error) {
-        console.warn('Failed to fetch Zapper profile for spender:', error);
+        console.warn(`Failed to fetch Zapper profile for ${targetLabel}:`, error);
       }
     }
 
-    return {
-      isApprove: true,
-      tokenName,
-      tokenSymbol,
-      spenderName,
-      spenderAddress,
-      amount: amountBigInt.toString(),
-      formattedAmount,
-    };
+    if (isApprove) {
+      return {
+        isApprove: true,
+        isTransfer: false,
+        tokenName,
+        tokenSymbol,
+        spenderName: targetName,
+        spenderAddress: targetAddress,
+        amount: amountBigInt.toString(),
+        formattedAmount,
+      };
+    } else {
+      return {
+        isApprove: false,
+        isTransfer: true,
+        tokenName,
+        tokenSymbol,
+        recipientName: targetName,
+        recipientAddress: targetAddress,
+        amount: amountBigInt.toString(),
+        formattedAmount,
+      };
+    }
 
   } catch (error) {
-    console.warn('Failed to decode ERC-20 approve:', error);
-    return { isApprove: false };
+    console.warn('Failed to decode ERC-20 transaction:', error);
+    return { isApprove: false, isTransfer: false };
   }
 }
 
@@ -298,8 +318,8 @@ export async function GET(request: NextRequest) {
     const chain = getChainConfig(chainId);
     const valueEth = formatEthValue(value);
     
-    // Try to decode ERC-20 approve transaction
-    let approveDetails: any = null;
+    // Try to decode ERC-20 transaction (approve or transfer)
+    let tokenDetails: any = null;
     if (config.thirdweb.clientId && data && to) {
       try {
         const client = createThirdwebClient({
@@ -310,10 +330,10 @@ export async function GET(request: NextRequest) {
         const chainObj = chainConfig[chainIdNum as keyof typeof chainConfig];
         
         if (chainObj) {
-          approveDetails = await decodeERC20Approve(data, to, client, chainObj);
+          tokenDetails = await decodeERC20Transaction(data, to, client, chainObj);
         }
       } catch (error) {
-        console.warn('Failed to decode approve transaction:', error);
+        console.warn('Failed to decode ERC-20 transaction:', error);
       }
     }
     
@@ -539,11 +559,11 @@ export async function GET(request: NextRequest) {
               WebkitBackgroundClip: 'text',
             }}
           >
-            {approveDetails?.isApprove ? '🔐 New Token Approval' : '🔔 New Safe Transaction'}
+            {tokenDetails?.isApprove ? '🔐 New Token Approval' : tokenDetails?.isTransfer ? '💸 New Token Transfer' : '🔔 New Safe Transaction'}
           </div>
 
-          {/* ERC-20 Approve Details (if applicable) */}
-          {approveDetails?.isApprove && (
+          {/* ERC-20 Token Details (approve or transfer) */}
+          {tokenDetails?.isApprove && (
             <div
               style={{
                 display: 'flex',
@@ -589,7 +609,7 @@ export async function GET(request: NextRequest) {
                     color: '#10b981',
                   }}
                 >
-                  {approveDetails.tokenName} ({approveDetails.tokenSymbol})
+                  {tokenDetails.tokenName} ({tokenDetails.tokenSymbol})
                 </div>
               </div>
               
@@ -606,10 +626,10 @@ export async function GET(request: NextRequest) {
                   style={{
                     display: 'flex',
                     fontWeight: 'bold',
-                    color: approveDetails.formattedAmount === 'Unlimited' ? '#ef4444' : '#f59e0b',
+                    color: tokenDetails.formattedAmount === 'Unlimited' ? '#ef4444' : '#f59e0b',
                   }}
                 >
-                  {approveDetails.formattedAmount} {approveDetails.tokenSymbol}
+                  {tokenDetails.formattedAmount} {tokenDetails.tokenSymbol}
                 </div>
               </div>
               
@@ -627,10 +647,104 @@ export async function GET(request: NextRequest) {
                     display: 'flex',
                     fontWeight: 'bold',
                     color: '#8b5cf6',
-                    fontFamily: approveDetails.spenderName === formatAddress(approveDetails.spenderAddress) ? 'monospace' : 'inherit',
+                    fontFamily: tokenDetails.spenderName === formatAddress(tokenDetails.spenderAddress) ? 'monospace' : 'inherit',
                   }}
                 >
-                  {approveDetails.spenderName}
+                  {tokenDetails.spenderName}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ERC-20 Transfer Details */}
+          {tokenDetails?.isTransfer && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '15px',
+                width: '100%',
+                maxWidth: '900px',
+                backgroundColor: '#1e293b',
+                padding: '25px',
+                borderRadius: '16px',
+                border: '2px solid #10b981',
+                boxShadow: '0 10px 25px rgba(16, 185, 129, 0.2)',
+                marginBottom: '20px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  color: '#10b981',
+                  alignItems: 'center',
+                  gap: '10px',
+                  justifyContent: 'center',
+                }}
+              >
+                💸 Transfer Details
+              </div>
+              
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '18px',
+                }}
+              >
+                <div style={{ display: 'flex', color: '#94a3b8' }}>Token:</div>
+                <div
+                  style={{
+                    display: 'flex',
+                    fontWeight: 'bold',
+                    color: '#10b981',
+                  }}
+                >
+                  {tokenDetails.tokenName} ({tokenDetails.tokenSymbol})
+                </div>
+              </div>
+              
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '18px',
+                }}
+              >
+                <div style={{ display: 'flex', color: '#94a3b8' }}>Amount:</div>
+                <div
+                  style={{
+                    display: 'flex',
+                    fontWeight: 'bold',
+                    color: '#10b981',
+                  }}
+                >
+                  {tokenDetails.formattedAmount} {tokenDetails.tokenSymbol}
+                </div>
+              </div>
+              
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '18px',
+                }}
+              >
+                <div style={{ display: 'flex', color: '#94a3b8' }}>Recipient:</div>
+                <div
+                  style={{
+                    display: 'flex',
+                    fontWeight: 'bold',
+                    color: '#60a5fa',
+                    fontFamily: tokenDetails.recipientName === formatAddress(tokenDetails.recipientAddress) ? 'monospace' : 'inherit',
+                  }}
+                >
+                  {tokenDetails.recipientName}
                 </div>
               </div>
             </div>
@@ -647,8 +761,8 @@ export async function GET(request: NextRequest) {
               alignItems: 'center',
             }}
           >
-            {/* Transaction Info Card - Only show if NOT an approval */}
-            {!approveDetails?.isApprove && (
+            {/* Transaction Info Card - Only show if NOT an approval or transfer */}
+            {!tokenDetails?.isApprove && !tokenDetails?.isTransfer && (
               <div
                 style={{
                   display: 'flex',
