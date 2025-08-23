@@ -12,6 +12,7 @@ This Next.js application monitors your Gnosis Safe for pending transactions and 
 - 🔗 Direct links to sign transactions in Safe App
 - 🛠️ Uses official Safe API Kit SDK for robust Safe interactions
 - 📊 Displays detailed Safe information (owners, threshold, nonce, etc.)
+- 🔧 Built with Thirdweb SDK v5 utilities for blockchain operations
 
 ## Prerequisites
 
@@ -193,6 +194,17 @@ The integration provides access to:
 - Confirmation tracking and more
 
 **Note:** For production use, you may want to obtain a Safe API key from [https://developer.safe.global](https://developer.safe.global) for higher rate limits.
+
+## Thirdweb SDK Integration
+
+This project leverages [Thirdweb SDK v5](https://portal.thirdweb.com/references/typescript/v5) utilities for blockchain operations:
+
+- **Chain Management** - Uses `defineChain` for proper chain definitions with metadata
+- **Address Formatting** - Uses `shortenAddress` for consistent address truncation
+- **Token Conversion** - Uses `toTokens` and `toWei` for proper decimal handling
+- **Type Safety** - Full TypeScript support with proper chain types
+
+The SDK provides battle-tested utilities that handle edge cases and provide consistent behavior across different blockchain networks.
 
 ## Customization
 

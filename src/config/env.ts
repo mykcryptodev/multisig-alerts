@@ -1,4 +1,8 @@
 // Environment configuration with type safety
+// Using Thirdweb SDK utilities for blockchain operations
+
+import { toTokens, toWei, shortenAddress } from 'thirdweb/utils';
+import { defineChain } from 'thirdweb/chains';
 
 export const config = {
   safe: {
@@ -16,35 +20,83 @@ export const config = {
   cronSecret: process.env.CRON_SECRET || '',
 } as const;
 
-// Chain configuration
+// Chain configuration using Thirdweb's defineChain
 export const chainConfig = {
-  1: { name: 'ethereum', explorer: 'https://etherscan.io' },
-  10: { name: 'optimism', explorer: 'https://optimistic.etherscan.io' },
-  137: { name: 'polygon', explorer: 'https://polygonscan.com' },
-  8453: { name: 'base', explorer: 'https://basescan.org' },
-  42161: { name: 'arbitrum', explorer: 'https://arbiscan.io' },
+  1: defineChain({
+    id: 1,
+    name: 'Ethereum',
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    blockExplorers: [{ name: 'Etherscan', url: 'https://etherscan.io' }],
+  }),
+  10: defineChain({
+    id: 10,
+    name: 'Optimism',
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    blockExplorers: [{ name: 'Optimistic Etherscan', url: 'https://optimistic.etherscan.io' }],
+  }),
+  137: defineChain({
+    id: 137,
+    name: 'Polygon',
+    nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+    blockExplorers: [{ name: 'PolygonScan', url: 'https://polygonscan.com' }],
+  }),
+  8453: defineChain({
+    id: 8453,
+    name: 'Base',
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    blockExplorers: [{ name: 'BaseScan', url: 'https://basescan.org' }],
+  }),
+  42161: defineChain({
+    id: 42161,
+    name: 'Arbitrum',
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    blockExplorers: [{ name: 'Arbiscan', url: 'https://arbiscan.io' }],
+  }),
 } as const;
 
 export function getChainConfig(chainId: string | number) {
   const id = Number(chainId);
-  return chainConfig[id as keyof typeof chainConfig] || { 
+  const chain = chainConfig[id as keyof typeof chainConfig];
+  
+  if (chain) {
+    return {
+      name: chain.name?.toLowerCase() || `chain ${id}`,
+      explorer: chain.blockExplorers?.[0]?.url || '',
+      chain: chain,
+    };
+  }
+  
+  return { 
     name: `chain ${id}`, 
-    explorer: '' 
+    explorer: '',
+    chain: null,
   };
 }
 
+// Use Thirdweb's shortenAddress utility instead of manual formatting
 export function formatAddress(address: string): string {
   if (!address) return '';
-  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+  return shortenAddress(address);
 }
 
-export function formatEthValue(valueWei: string): string {
+// Use Thirdweb's toTokens utility for proper Wei to ETH conversion
+export function formatEthValue(valueWei: string, decimals: number = 18): string {
   if (!valueWei || valueWei === '0') return '0';
   
   try {
     const wei = BigInt(valueWei);
-    const eth = Number(wei / BigInt(10 ** 14)) / 10000;
-    return eth.toFixed(4).replace(/\.?0+$/, '');
+    return toTokens(wei, decimals);
+  } catch {
+    return '0';
+  }
+}
+
+// Additional utility using Thirdweb's toWei for reverse conversion
+export function formatWeiValue(valueEth: string, decimals: number = 18): string {
+  if (!valueEth || valueEth === '0') return '0';
+  
+  try {
+    return toWei(valueEth).toString();
   } catch {
     return '0';
   }
