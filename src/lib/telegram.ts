@@ -94,11 +94,11 @@ export class TelegramService {
     }
   }
 
-  formatTransactionMessage(
+  async formatTransactionMessage(
     tx: any, // Using any since we're getting this from Safe API Kit
     confirmations: number,
     threshold: number
-  ): string {
+  ): Promise<string> {
     const chainId = config.safe.chainId;
     const safeAddress = config.safe.address;
     const chain = getChainConfig(chainId);
@@ -136,6 +136,49 @@ export class TelegramService {
       lines.push(`<b>Method:</b> <code>${tx.dataDecoded.method}</code>`);
     }
 
+    // Add AI description for complex transactions (if not ERC-20 approve/transfer)
+    if (config.thirdweb.clientId && tx.data && tx.data !== '0x') {
+      // Check if it's a simple ERC-20 approve or transfer
+      const isApprove = tx.data.startsWith('0x095ea7b3');
+      const isTransfer = tx.data.startsWith('0xa9059cbb');
+      
+      if (!isApprove && !isTransfer) {
+        try {
+          console.log('🤖 Getting AI description for transaction...');
+          const aiResponse = await fetch('https://api.thirdweb.com/v1/ai/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-client-id': config.thirdweb.clientId,
+            },
+            body: JSON.stringify({
+              messages: [
+                {
+                  role: 'user',
+                  content: `Explain what this transaction does in 1-3 simple words (like "Swap tokens", "Stake ETH", "Claim rewards"). Transaction data: ${tx.data}, Contract: ${destination}, Chain: ${chainId}`
+                }
+              ],
+              context: {
+                chain_ids: [Number(chainId)],
+                from: destination
+              }
+            })
+          });
+          
+          if (aiResponse.ok) {
+            const aiData = await aiResponse.json();
+            if (aiData.choices && aiData.choices[0]?.message?.content) {
+              const aiDescription = aiData.choices[0].message.content.trim();
+              console.log('🤖 AI description:', aiDescription);
+              lines.push(`<b>Action:</b> ${aiDescription}`);
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to get AI description:', error);
+        }
+      }
+    }
+
     // Add Safe Web App link
     lines.push('');
     lines.push(`<a href="${safeWebUrl}">✅ Sign Transaction in Safe App</a>`);
@@ -156,7 +199,7 @@ export class TelegramService {
       
       if (ogImageUrl) {
         console.log('✅ OG image URL generated:', ogImageUrl);
-        const caption = this.formatTransactionMessage(tx, confirmations, threshold);
+        const caption = await this.formatTransactionMessage(tx, confirmations, threshold);
         console.log('📝 Sending photo with caption...');
         const photoSent = await this.sendPhoto(ogImageUrl, caption);
         
@@ -172,14 +215,14 @@ export class TelegramService {
       
       // Fallback to text-only message if image fails
       console.log('📝 Sending text-only message...');
-      const message = this.formatTransactionMessage(tx, confirmations, threshold);
+      const message = await this.formatTransactionMessage(tx, confirmations, threshold);
       return await this.sendMessage(message);
     } catch (error) {
       console.error('❌ Failed to send transaction notification:', error);
       
       // Final fallback to text-only message
       console.log('📝 Final fallback to text-only message...');
-      const message = this.formatTransactionMessage(tx, confirmations, threshold);
+      const message = await this.formatTransactionMessage(tx, confirmations, threshold);
       return await this.sendMessage(message);
     }
   }
