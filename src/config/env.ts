@@ -82,7 +82,25 @@ export function getChainConfig(chainId: string | number) {
 // Use Thirdweb's shortenAddress utility instead of manual formatting
 export function formatAddress(address: string): string {
   if (!address) return '';
-  return shortenAddress(address);
+  
+  // Check if it's a valid Ethereum address format (0x + 40 hex characters)
+  const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(address);
+  
+  if (!isValidAddress) {
+    // Fallback for invalid addresses - manual formatting
+    if (address.length > 10) {
+      return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+    return address;
+  }
+  
+  try {
+    return shortenAddress(address);
+  } catch (error) {
+    // Fallback if Thirdweb's shortenAddress fails
+    console.warn('Failed to format address with Thirdweb:', address, error);
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }
 }
 
 // Use Thirdweb's toTokens utility for proper Wei to ETH conversion
