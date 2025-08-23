@@ -647,20 +647,21 @@ export async function GET(request: NextRequest) {
               alignItems: 'center',
             }}
           >
-            {/* Transaction Info Card */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '20px',
-                width: '100%',
-                backgroundColor: '#1e293b',
-                padding: '30px',
-                borderRadius: '16px',
-                border: '2px solid #334155',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
-              }}
-            >
+            {/* Transaction Info Card - Only show if NOT an approval */}
+            {!approveDetails?.isApprove && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '20px',
+                  width: '100%',
+                  backgroundColor: '#1e293b',
+                  padding: '30px',
+                  borderRadius: '16px',
+                  border: '2px solid #334155',
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+                }}
+              >
               {/* Safe Address Row */}
               <div
                 style={{
@@ -847,6 +848,7 @@ export async function GET(request: NextRequest) {
                 </div>
               </div>
             </div>
+            )}
 
             {/* Signers Section */}
             <div
