@@ -250,6 +250,7 @@ export class TelegramService {
         owners: safeInfo.data.owners.join(','),
         confirmedSigners: confirmedSigners.join(','),
         method: tx.dataDecoded?.method || '',
+        data: tx.data || '', // Add transaction data for ERC-20 decoding
       });
 
       const ogImageUrl = `${baseUrl}/api/og/transaction?${params.toString()}`;

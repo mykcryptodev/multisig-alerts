@@ -4,6 +4,7 @@ import { getSocialProfiles } from 'thirdweb/social';
 import { createThirdwebClient } from 'thirdweb';
 import { getContract } from 'thirdweb';
 import { readContract } from 'thirdweb';
+import { toTokens } from 'thirdweb/utils';
 import { config, formatAddress, formatEthValue, getChainConfig, chainConfig } from '@/config/env';
 
 // Zapper API helper function
@@ -105,6 +106,149 @@ async function getZapperAccountInfo(addresses: string[]): Promise<Record<string,
   }
 }
 
+// Function to decode ERC-20 approve transactions
+async function decodeERC20Approve(data: string, to: string, client: any, chain: any): Promise<{
+  isApprove: boolean;
+  tokenName?: string;
+  tokenSymbol?: string;
+  spenderName?: string;
+  spenderAddress?: string;
+  amount?: string;
+  formattedAmount?: string;
+} | null> {
+  try {
+    // Check if this is an ERC-20 approve call (function signature: 0x095ea7b3)
+    if (!data.startsWith('0x095ea7b3')) {
+      return { isApprove: false };
+    }
+
+    // Decode the approve function parameters
+    // approve(address spender, uint256 amount)
+    // data format: 0x095ea7b3 + 32 bytes spender + 32 bytes amount
+    if (data.length < 138) { // 10 chars for 0x095ea7b3 + 128 chars for params
+      return { isApprove: false };
+    }
+
+    const spenderAddress = '0x' + data.slice(34, 74); // Extract spender address
+    const amountHex = data.slice(74, 138); // Extract amount
+    const amountBigInt = BigInt('0x' + amountHex);
+
+    // Get token info
+    const tokenContract = getContract({
+      client,
+      chain,
+      address: to,
+    });
+
+    const [tokenNameResult, tokenSymbolResult, tokenDecimalsResult] = await Promise.allSettled([
+      readContract({
+        contract: tokenContract,
+        method: 'function name() view returns (string)',
+        params: [],
+      }),
+      readContract({
+        contract: tokenContract,
+        method: 'function symbol() view returns (string)',
+        params: [],
+      }),
+      readContract({
+        contract: tokenContract,
+        method: 'function decimals() view returns (uint8)',
+        params: [],
+      }),
+    ]);
+
+    const tokenName = tokenNameResult.status === 'fulfilled' ? tokenNameResult.value : 'Unknown Token';
+    const tokenSymbol = tokenSymbolResult.status === 'fulfilled' ? tokenSymbolResult.value : 'UNKNOWN';
+    const decimals = tokenDecimalsResult.status === 'fulfilled' ? Number(tokenDecimalsResult.value) : 18;
+
+    // Format amount
+    let formattedAmount = 'Unknown';
+    try {
+      if (amountBigInt === BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')) {
+        formattedAmount = 'Unlimited';
+      } else {
+        formattedAmount = toTokens(amountBigInt, decimals);
+      }
+    } catch (error) {
+      console.warn('Failed to format token amount:', error);
+    }
+
+    // Try to get spender name using the same comprehensive logic as "To" address
+    let spenderName = formatAddress(spenderAddress);
+    
+    // 1. Try Thirdweb social profiles first
+    try {
+      const spenderProfiles = await getSocialProfiles({
+        address: spenderAddress,
+        client,
+      });
+      
+      const farcasterProfile = spenderProfiles.find(p => p.type === 'farcaster');
+      const lensProfile = spenderProfiles.find(p => p.type === 'lens');
+      const ensProfile = spenderProfiles.find(p => p.type === 'ens');
+      
+      const bestSpenderProfile = farcasterProfile || lensProfile || ensProfile;
+      if (bestSpenderProfile?.name) {
+        spenderName = bestSpenderProfile.name;
+      }
+    } catch (error) {
+      console.warn('Failed to fetch spender social profile:', error);
+    }
+
+    // 2. If no social profile, try to get spender contract name
+    if (spenderName === formatAddress(spenderAddress)) {
+      try {
+        const spenderContract = getContract({
+          client,
+          chain,
+          address: spenderAddress,
+        });
+        
+        const spenderNameResult = await readContract({
+          contract: spenderContract,
+          method: 'function name() view returns (string)',
+          params: [],
+        });
+        
+        if (spenderNameResult) {
+          spenderName = spenderNameResult;
+        }
+      } catch (error) {
+        // Ignore - not all contracts have a name function
+      }
+    }
+
+    // 3. If still no name, try Zapper as final fallback
+    if (spenderName === formatAddress(spenderAddress)) {
+      try {
+        const zapperInfo = await getZapperAccountInfo([spenderAddress]);
+        const zapperProfile = zapperInfo[spenderAddress];
+        if (zapperProfile?.name && zapperProfile.source !== 'address') {
+          spenderName = zapperProfile.name;
+          console.log(`Found Zapper name for spender: ${zapperProfile.name} (${zapperProfile.source})`);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch Zapper profile for spender:', error);
+      }
+    }
+
+    return {
+      isApprove: true,
+      tokenName,
+      tokenSymbol,
+      spenderName,
+      spenderAddress,
+      amount: amountBigInt.toString(),
+      formattedAmount,
+    };
+
+  } catch (error) {
+    console.warn('Failed to decode ERC-20 approve:', error);
+    return { isApprove: false };
+  }
+}
+
 export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
@@ -123,6 +267,7 @@ export async function GET(request: NextRequest) {
     const owners = searchParams.get('owners')?.split(',') || [];
     const confirmedSigners = searchParams.get('confirmedSigners')?.split(',') || [];
     const method = searchParams.get('method');
+    const data = searchParams.get('data'); // Transaction data for decoding
 
     if (!safeTxHash || !safeAddress) {
       return new ImageResponse(
@@ -152,6 +297,25 @@ export async function GET(request: NextRequest) {
     // Get chain configuration
     const chain = getChainConfig(chainId);
     const valueEth = formatEthValue(value);
+    
+    // Try to decode ERC-20 approve transaction
+    let approveDetails: any = null;
+    if (config.thirdweb.clientId && data && to) {
+      try {
+        const client = createThirdwebClient({
+          clientId: config.thirdweb.clientId,
+        });
+        
+        const chainIdNum = Number(chainId);
+        const chainObj = chainConfig[chainIdNum as keyof typeof chainConfig];
+        
+        if (chainObj) {
+          approveDetails = await decodeERC20Approve(data, to, client, chainObj);
+        }
+      } catch (error) {
+        console.warn('Failed to decode approve transaction:', error);
+      }
+    }
     
     // Fetch social profiles for owners (limit to first 3 for space)
     let ownerProfiles: Array<{
@@ -375,8 +539,102 @@ export async function GET(request: NextRequest) {
               WebkitBackgroundClip: 'text',
             }}
           >
-            🔔 New Safe Transaction
+            {approveDetails?.isApprove ? '🔐 New Token Approval' : '🔔 New Safe Transaction'}
           </div>
+
+          {/* ERC-20 Approve Details (if applicable) */}
+          {approveDetails?.isApprove && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '15px',
+                width: '100%',
+                maxWidth: '900px',
+                backgroundColor: '#1e293b',
+                padding: '25px',
+                borderRadius: '16px',
+                border: '2px solid #f59e0b',
+                boxShadow: '0 10px 25px rgba(245, 158, 11, 0.2)',
+                marginBottom: '20px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  color: '#f59e0b',
+                  alignItems: 'center',
+                  gap: '10px',
+                  justifyContent: 'center',
+                }}
+              >
+                🔐 Approval Details
+              </div>
+              
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '18px',
+                }}
+              >
+                <div style={{ display: 'flex', color: '#94a3b8' }}>Token:</div>
+                <div
+                  style={{
+                    display: 'flex',
+                    fontWeight: 'bold',
+                    color: '#10b981',
+                  }}
+                >
+                  {approveDetails.tokenName} ({approveDetails.tokenSymbol})
+                </div>
+              </div>
+              
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '18px',
+                }}
+              >
+                <div style={{ display: 'flex', color: '#94a3b8' }}>Amount:</div>
+                <div
+                  style={{
+                    display: 'flex',
+                    fontWeight: 'bold',
+                    color: approveDetails.formattedAmount === 'Unlimited' ? '#ef4444' : '#f59e0b',
+                  }}
+                >
+                  {approveDetails.formattedAmount} {approveDetails.tokenSymbol}
+                </div>
+              </div>
+              
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '18px',
+                }}
+              >
+                <div style={{ display: 'flex', color: '#94a3b8' }}>Spender:</div>
+                <div
+                  style={{
+                    display: 'flex',
+                    fontWeight: 'bold',
+                    color: '#8b5cf6',
+                    fontFamily: approveDetails.spenderName === formatAddress(approveDetails.spenderAddress) ? 'monospace' : 'inherit',
+                  }}
+                >
+                  {approveDetails.spenderName}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Main Content Container */}
           <div
