@@ -65,6 +65,12 @@ export class TelegramService {
       return false;
     }
 
+    console.log('📸 Attempting to send photo:', {
+      photoUrl: photoUrl,
+      hasCaption: !!caption,
+      chatId: this.chatId
+    });
+
     const url = `https://api.telegram.org/bot${this.botToken}/sendPhoto`;
     
     const body = {
@@ -75,21 +81,86 @@ export class TelegramService {
     };
 
     try {
+      // First, let's test if the image URL is accessible
+      console.log('🔍 Testing image URL accessibility...');
+      const imageTest = await fetch(photoUrl, { method: 'HEAD' });
+      console.log('📊 Image URL test result:', {
+        status: imageTest.status,
+        contentType: imageTest.headers.get('content-type'),
+        contentLength: imageTest.headers.get('content-length')
+      });
+
+      if (!imageTest.ok) {
+        console.error('❌ Image URL not accessible:', imageTest.status);
+        return false;
+      }
+
+      console.log('📤 Sending to Telegram API...');
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'User-Agent': 'MultisigAlert/1.0'
+        },
         body: JSON.stringify(body),
       });
 
       if (!response.ok) {
         const error = await response.text();
-        console.error('Telegram API error:', response.status, error);
+        console.error('❌ Telegram API error:', response.status, error);
+        
+        // Try alternative approach with shorter URL or different method
+        console.log('🔄 Trying alternative approach...');
+        return await this.sendPhotoAlternative(photoUrl, caption);
+      }
+
+      const result = await response.json();
+      console.log('✅ Photo sent successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to send Telegram photo:', error);
+      return false;
+    }
+  }
+
+  private async sendPhotoAlternative(photoUrl: string, caption?: string): Promise<boolean> {
+    try {
+      // Try downloading the image and sending as file upload instead of URL
+      console.log('🔄 Trying to download and upload image directly...');
+      
+      const imageResponse = await fetch(photoUrl);
+      if (!imageResponse.ok) {
+        console.error('Failed to download image:', imageResponse.status);
         return false;
       }
 
+      const imageBuffer = await imageResponse.arrayBuffer();
+      const blob = new Blob([imageBuffer], { type: 'image/png' });
+      
+      const url = `https://api.telegram.org/bot${this.botToken}/sendPhoto`;
+      const formData = new FormData();
+      formData.append('chat_id', this.chatId);
+      formData.append('photo', blob, 'transaction.png');
+      if (caption) {
+        formData.append('caption', caption);
+        formData.append('parse_mode', 'HTML');
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('Alternative method failed:', response.status, error);
+        return false;
+      }
+
+      console.log('✅ Alternative method succeeded');
       return true;
     } catch (error) {
-      console.error('Failed to send Telegram photo:', error);
+      console.error('Alternative method error:', error);
       return false;
     }
   }
