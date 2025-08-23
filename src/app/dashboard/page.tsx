@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { config, getChainConfig, formatAddress } from '@/config/env';
+import { formatAddress } from '@/config/env';
 
 interface CheckResult {
   success: boolean;
@@ -24,26 +24,58 @@ interface SafeInfo {
   version: string;
 }
 
+interface ClientConfig {
+  safe: {
+    address: string;
+    chainId: string;
+    chainName: string;
+    explorer: string;
+  };
+  telegram: {
+    isConfigured: boolean;
+    hasBotToken: boolean;
+    hasChatId: boolean;
+  };
+  isFullyConfigured: boolean;
+}
+
 export default function Dashboard() {
   const [isChecking, setIsChecking] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [lastResult, setLastResult] = useState<CheckResult | null>(null);
   const [testResult, setTestResult] = useState<string>('');
   const [configLoaded, setConfigLoaded] = useState(false);
+  const [clientConfig, setClientConfig] = useState<ClientConfig | null>(null);
   const [safeInfo, setSafeInfo] = useState<SafeInfo | null>(null);
   const [loadingSafeInfo, setLoadingSafeInfo] = useState(false);
 
   useEffect(() => {
-    // Load config on client side
-    setConfigLoaded(true);
-    
-    // Fetch Safe info if address is configured
-    if (config.safe.address) {
-      fetchSafeInfo();
-    }
+    // Load configuration from server-side API
+    fetchConfig();
   }, []);
 
+  const fetchConfig = async () => {
+    try {
+      const response = await fetch('/api/config');
+      const data = await response.json();
+      if (data.success) {
+        setClientConfig(data.data);
+        setConfigLoaded(true);
+        
+        // Fetch Safe info if address is configured
+        if (data.data.safe.address) {
+          fetchSafeInfo();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch configuration:', error);
+      setConfigLoaded(true); // Still set loaded to show error state
+    }
+  };
+
   const fetchSafeInfo = async () => {
+    if (!clientConfig?.safe.address) return;
+    
     setLoadingSafeInfo(true);
     try {
       const response = await fetch('/api/safe-info');
@@ -106,7 +138,13 @@ export default function Dashboard() {
     );
   }
 
-  const chainConfig = getChainConfig(config.safe.chainId);
+  if (!clientConfig) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center text-red-400">Failed to load configuration</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8">
@@ -121,31 +159,31 @@ export default function Dashboard() {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <p className="text-gray-400">Safe Address:</p>
-              <p className="font-mono text-sm break-all">{config.safe.address || 'Not configured'}</p>
+              <p className="font-mono text-sm break-all">{clientConfig.safe.address || 'Not configured'}</p>
             </div>
             <div>
               <p className="text-gray-400">Chain:</p>
-              <p>{chainConfig.name} (ID: {config.safe.chainId})</p>
+              <p>{clientConfig.safe.chainName} (ID: {clientConfig.safe.chainId})</p>
             </div>
             <div>
               <p className="text-gray-400">Telegram Bot:</p>
-              <p>{config.telegram.botToken ? '✅ Configured' : '❌ Not configured'}</p>
+              <p>{clientConfig.telegram.hasBotToken ? '✅ Configured' : '❌ Not configured'}</p>
             </div>
             <div>
               <p className="text-gray-400">Telegram Chat:</p>
-              <p>{config.telegram.chatId || 'Not configured'}</p>
+              <p>{clientConfig.telegram.hasChatId ? '✅ Configured' : '❌ Not configured'}</p>
             </div>
           </div>
           
-          {chainConfig.explorer && config.safe.address && (
+          {clientConfig.safe.explorer && clientConfig.safe.address && (
             <div className="mt-4 pt-4 border-t border-gray-700">
               <a
-                href={`${chainConfig.explorer}/address/${config.safe.address}`}
+                href={`${clientConfig.safe.explorer}/address/${clientConfig.safe.address}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-400 hover:text-blue-300 underline"
               >
-                View Safe on {chainConfig.name} Explorer →
+                View Safe on {clientConfig.safe.chainName} Explorer →
               </a>
             </div>
           )}
@@ -189,7 +227,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {loadingSafeInfo && config.safe.address && (
+        {loadingSafeInfo && clientConfig.safe.address && (
           <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">
             <p className="text-gray-400">Loading Safe information...</p>
           </div>
@@ -203,13 +241,13 @@ export default function Dashboard() {
             <div>
               <button
                 onClick={handleManualCheck}
-                disabled={isChecking || !config.safe.address}
+                disabled={isChecking || !clientConfig.safe.address}
                 className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
               >
                 {isChecking ? 'Checking...' : 'Check for New Transactions'}
               </button>
               
-              {!config.safe.address && (
+              {!clientConfig.safe.address && (
                 <p className="text-red-400 text-sm mt-2">Configure SAFE_ADDRESS to enable</p>
               )}
             </div>
@@ -217,13 +255,13 @@ export default function Dashboard() {
             <div>
               <button
                 onClick={handleTestTelegram}
-                disabled={isTesting || !config.telegram.botToken || !config.telegram.chatId}
+                disabled={isTesting || !clientConfig.telegram.isConfigured}
                 className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
               >
                 {isTesting ? 'Testing...' : 'Test Telegram Connection'}
               </button>
               
-              {(!config.telegram.botToken || !config.telegram.chatId) && (
+              {!clientConfig.telegram.isConfigured && (
                 <p className="text-red-400 text-sm mt-2">Configure Telegram credentials to enable</p>
               )}
               
