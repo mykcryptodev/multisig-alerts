@@ -17,6 +17,9 @@ export const config = {
   vercel: {
     edgeConfig: process.env.EDGE_CONFIG || '',
   },
+  thirdweb: {
+    clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || '',
+  },
   cronSecret: process.env.CRON_SECRET || '',
 } as const;
 

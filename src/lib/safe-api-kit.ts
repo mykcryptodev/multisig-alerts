@@ -68,11 +68,10 @@ export async function checkForNewTransactions() {
             threshold,
           });
           
-          // Send notification
+          // Send notification with OG image
           try {
             const telegram = getTelegram();
-            const message = formatNotificationMessage(tx, confirmations, threshold);
-            const sent = await telegram.sendMessage(message);
+            const sent = await telegram.notifyNewTransaction(tx, confirmations, threshold);
             
             if (sent) {
               notificationsSent++;

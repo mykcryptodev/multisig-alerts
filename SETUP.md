@@ -202,9 +202,29 @@ This project leverages [Thirdweb SDK v5](https://portal.thirdweb.com/references/
 - **Chain Management** - Uses `defineChain` for proper chain definitions with metadata
 - **Address Formatting** - Uses `shortenAddress` for consistent address truncation
 - **Token Conversion** - Uses `toTokens` and `toWei` for proper decimal handling
+- **Social Profiles** - Uses `getSocialProfiles` to display human-readable names and avatars
 - **Type Safety** - Full TypeScript support with proper chain types
 
 The SDK provides battle-tested utilities that handle edge cases and provide consistent behavior across different blockchain networks.
+
+## OG Image Generation
+
+Transaction notifications now include rich visual cards generated using Vercel's OG Image API:
+
+- **Transaction Details** - Safe address, destination, value, nonce, and signature requirements
+- **Social Profiles** - Human-readable names and avatars for Safe owners using Thirdweb's social API
+- **Visual Design** - Professional dark theme with gradient accents and proper typography
+- **Fallback Support** - Gracefully falls back to text-only messages if image generation fails
+
+### Required Environment Variables
+
+```bash
+# Thirdweb Client ID for social profiles
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=your-client-id
+
+# Your app's public URL for OG image generation
+NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+```
 
 ## Customization
 

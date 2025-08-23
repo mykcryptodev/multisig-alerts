@@ -12,6 +12,16 @@ interface CheckResult {
   error?: string;
 }
 
+interface TelegramTestResult {
+  success: boolean;
+  message: string;
+  tests?: {
+    textMessage: string;
+    ogImage: string;
+  };
+  imageError?: string;
+}
+
 interface SafeInfo {
   address: string;
   nonce: number;
@@ -42,8 +52,10 @@ interface ClientConfig {
 export default function Dashboard() {
   const [isChecking, setIsChecking] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isTestingOG, setIsTestingOG] = useState(false);
   const [lastResult, setLastResult] = useState<CheckResult | null>(null);
-  const [testResult, setTestResult] = useState<string>('');
+  const [testResult, setTestResult] = useState<TelegramTestResult | null>(null);
+  const [ogTestResult, setOgTestResult] = useState<string>('');
   const [configLoaded, setConfigLoaded] = useState(false);
   const [clientConfig, setClientConfig] = useState<ClientConfig | null>(null);
   const [safeInfo, setSafeInfo] = useState<SafeInfo | null>(null);
@@ -114,7 +126,7 @@ export default function Dashboard() {
 
   const handleTestTelegram = async () => {
     setIsTesting(true);
-    setTestResult('');
+    setTestResult(null);
     
     try {
       const response = await fetch('/api/test-telegram', {
@@ -122,11 +134,35 @@ export default function Dashboard() {
       });
       
       const data = await response.json();
-      setTestResult(data.message || (data.success ? 'Success!' : 'Failed'));
+      setTestResult(data);
     } catch (error) {
-      setTestResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setTestResult({
+        success: false,
+        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
     } finally {
       setIsTesting(false);
+    }
+  };
+
+  const handleTestOGImage = async () => {
+    setIsTestingOG(true);
+    setOgTestResult('');
+    
+    try {
+      const response = await fetch('/api/test-og');
+      const data = await response.json();
+      
+      if (data.success) {
+        setOgTestResult(data.ogImageUrl);
+      } else {
+        setOgTestResult('');
+      }
+    } catch (error) {
+      console.error('Failed to test OG image:', error);
+      setOgTestResult('');
+    } finally {
+      setIsTestingOG(false);
     }
   };
 
@@ -266,9 +302,47 @@ export default function Dashboard() {
               )}
               
               {testResult && (
-                <p className={`mt-2 ${testResult.includes('Error') || testResult.includes('Failed') ? 'text-red-400' : 'text-green-400'}`}>
-                  {testResult}
-                </p>
+                <div className="mt-2">
+                  <p className={`${testResult.success ? 'text-green-400' : 'text-red-400'}`}>
+                    {testResult.message}
+                  </p>
+                  {testResult.tests && (
+                    <div className="mt-2 text-sm">
+                      <p className="text-gray-300">Test Results:</p>
+                      <ul className="list-disc list-inside text-gray-400 ml-2">
+                        <li>Text Message: <span className={testResult.tests.textMessage === 'Passed' ? 'text-green-400' : 'text-red-400'}>{testResult.tests.textMessage}</span></li>
+                        <li>OG Image: <span className={testResult.tests.ogImage === 'Passed' ? 'text-green-400' : 'text-red-400'}>{testResult.tests.ogImage}</span></li>
+                      </ul>
+                      {testResult.imageError && (
+                        <p className="text-yellow-400 text-xs mt-1">Image Error: {testResult.imageError}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <button
+                onClick={handleTestOGImage}
+                disabled={isTestingOG}
+                className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
+              >
+                {isTestingOG ? 'Testing...' : 'Test OG Image Generation'}
+              </button>
+              
+              {ogTestResult && (
+                <div className="mt-2">
+                  <p className="text-green-400 text-sm mb-2">OG Image generated successfully!</p>
+                  <a
+                    href={ogTestResult}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline text-sm"
+                  >
+                    View Generated Image →
+                  </a>
+                </div>
               )}
             </div>
           </div>
