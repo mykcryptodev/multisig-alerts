@@ -20,6 +20,9 @@ export const config = {
   thirdweb: {
     clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || '',
   },
+  zapper: {
+    apiKey: process.env.ZAPPER_API_KEY || '',
+  },
   cronSecret: process.env.CRON_SECRET || '',
 } as const;
 

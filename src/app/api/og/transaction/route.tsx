@@ -2,7 +2,108 @@ import { ImageResponse } from '@vercel/og';
 import { NextRequest } from 'next/server';
 import { getSocialProfiles } from 'thirdweb/social';
 import { createThirdwebClient } from 'thirdweb';
-import { config, formatAddress, formatEthValue, getChainConfig } from '@/config/env';
+import { getContract } from 'thirdweb';
+import { readContract } from 'thirdweb';
+import { config, formatAddress, formatEthValue, getChainConfig, chainConfig } from '@/config/env';
+
+// Zapper API helper function
+async function getZapperAccountInfo(addresses: string[]): Promise<Record<string, { name: string; source: string } | null>> {
+  try {
+    const query = `
+      query AccountIdentity($addresses: [Address!]!) {
+        accounts(addresses: $addresses) {
+          displayName {
+            source
+            value
+          }
+          description {
+            source
+            value
+          }
+          ensRecord {
+            name
+          }
+          basename
+          farcasterProfile {
+            username
+            fid
+          }
+          lensProfile {
+            handle
+          }
+        }
+      }
+    `;
+
+    const response = await fetch('https://public.zapper.xyz/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-zapper-api-key': config.zapper.apiKey,
+      },
+      body: JSON.stringify({
+        query,
+        variables: { addresses },
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn('Zapper API request failed:', response.status);
+      return {};
+    }
+
+    const data = await response.json();
+    
+    if (data.errors) {
+      console.warn('Zapper API errors:', data.errors);
+      return {};
+    }
+
+    const result: Record<string, { name: string; source: string } | null> = {};
+    
+    addresses.forEach((address, index) => {
+      const account = data.data?.accounts?.[index];
+      if (account) {
+        // Priority: displayName > farcasterProfile > lensProfile > ensRecord > basename
+        if (account.displayName?.value) {
+          result[address] = {
+            name: account.displayName.value,
+            source: account.displayName.source.toLowerCase(),
+          };
+        } else if (account.farcasterProfile?.username) {
+          result[address] = {
+            name: `@${account.farcasterProfile.username}`,
+            source: 'farcaster',
+          };
+        } else if (account.lensProfile?.handle) {
+          result[address] = {
+            name: account.lensProfile.handle,
+            source: 'lens',
+          };
+        } else if (account.ensRecord?.name) {
+          result[address] = {
+            name: account.ensRecord.name,
+            source: 'ens',
+          };
+        } else if (account.basename) {
+          result[address] = {
+            name: account.basename,
+            source: 'basename',
+          };
+        } else {
+          result[address] = null;
+        }
+      } else {
+        result[address] = null;
+      }
+    });
+
+    return result;
+  } catch (error) {
+    console.warn('Failed to fetch Zapper account info:', error);
+    return {};
+  }
+}
 
 export const runtime = 'edge';
 
@@ -59,42 +160,88 @@ export async function GET(request: NextRequest) {
       avatar?: string;
       type?: string;
       hasSigned: boolean;
+      needsZapper?: boolean;
     }> = [];
 
-    // Fetch human-readable name for the "To" address
+    // Step 1: Collect all addresses that might need Zapper lookup
+    const allAddresses = [...(to ? [to] : []), ...owners].filter(Boolean);
+    let zapperProfiles: Record<string, { name: string; source: string } | null> = {};
+    
+    // Step 2: Try Thirdweb first for all addresses, then ERC-20 token lookup, track which need Zapper fallback
     let toAddressName = formatAddress(to || 'Unknown');
-    if (to && config.thirdweb.clientId) {
-      try {
-        const client = createThirdwebClient({
-          clientId: config.thirdweb.clientId,
-        });
-        const toProfiles = await getSocialProfiles({
-          address: to,
-          client,
-        });
-        
-        // Find the best profile (prioritize Farcaster, then Lens, then ENS)
-        const farcasterProfile = toProfiles.find(p => p.type === 'farcaster');
-        const lensProfile = toProfiles.find(p => p.type === 'lens');
-        const ensProfile = toProfiles.find(p => p.type === 'ens');
-        
-        const bestToProfile = farcasterProfile || lensProfile || ensProfile;
-        if (bestToProfile?.name) {
-          toAddressName = bestToProfile.name;
-        }
-      } catch (error) {
-        console.warn(`Failed to fetch social profile for "To" address ${to}:`, error);
-        // Keep the default formatted address
-      }
-    }
-
-    // Only try to fetch social profiles if Thirdweb client ID is configured
+    let toNeedsZapper = true;
+    
     if (config.thirdweb.clientId) {
       try {
         const client = createThirdwebClient({
           clientId: config.thirdweb.clientId,
         });
 
+        // Try Thirdweb for "To" address
+        if (to) {
+          try {
+            const toProfiles = await getSocialProfiles({
+              address: to,
+              client,
+            });
+            
+            // Find the best profile (prioritize Farcaster, then Lens, then ENS)
+            const farcasterProfile = toProfiles.find(p => p.type === 'farcaster');
+            const lensProfile = toProfiles.find(p => p.type === 'lens');
+            const ensProfile = toProfiles.find(p => p.type === 'ens');
+            
+            const bestToProfile = farcasterProfile || lensProfile || ensProfile;
+            if (bestToProfile?.name) {
+              toAddressName = bestToProfile.name;
+              toNeedsZapper = false;
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch Thirdweb social profile for "To" address ${to}:`, error);
+          }
+          
+          // If no social profile found, try ERC-20 token lookup before Zapper
+          if (toNeedsZapper && toAddressName === formatAddress(to)) {
+            try {
+              const chainIdNum = Number(chainId);
+              const chain = chainConfig[chainIdNum as keyof typeof chainConfig];
+              
+              if (chain) {
+                const contract = getContract({
+                  client,
+                  chain,
+                  address: to,
+                });
+                
+                // Try to get token name and symbol (assume it might be an ERC20)
+                const [tokenNameResult, tokenSymbolResult] = await Promise.allSettled([
+                  readContract({
+                    contract,
+                    method: 'function name() view returns (string)',
+                    params: [],
+                  }),
+                  readContract({
+                    contract,
+                    method: 'function symbol() view returns (string)',
+                    params: [],
+                  }),
+                ]);
+                
+                if (tokenNameResult.status === 'fulfilled' && tokenNameResult.value) {
+                  const symbol = tokenSymbolResult.status === 'fulfilled' && tokenSymbolResult.value 
+                    ? ` (${tokenSymbolResult.value})` 
+                    : '';
+                  toAddressName = `${tokenNameResult.value}${symbol}`;
+                  toNeedsZapper = false; // Found token name, no need for Zapper
+                  console.log(`Found token name for "To" address: ${toAddressName}`);
+                }
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch token info for "To" address ${to}:`, error);
+            }
+          }
+        }
+
+        // Try Thirdweb for owners
         ownerProfiles = await Promise.all(
           owners.map(async (owner) => {
             try {
@@ -116,6 +263,7 @@ export async function GET(request: NextRequest) {
                 avatar: bestProfile?.avatar,
                 type: bestProfile?.type,
                 hasSigned: confirmedSigners.includes(owner.toLowerCase()) || confirmedSigners.includes(owner),
+                needsZapper: !bestProfile?.name,
               };
             } catch (error) {
               console.warn(`Failed to fetch social profile for ${owner}:`, error);
@@ -125,31 +273,77 @@ export async function GET(request: NextRequest) {
                 avatar: undefined,
                 type: undefined,
                 hasSigned: confirmedSigners.includes(owner.toLowerCase()) || confirmedSigners.includes(owner),
+                needsZapper: true,
               };
             }
           })
         );
+        
       } catch (error) {
         console.warn('Failed to initialize Thirdweb client for social profiles:', error);
-        // Fallback to basic address formatting
+        // Mark all as needing Zapper
         ownerProfiles = owners.map(owner => ({
           address: owner,
           name: formatAddress(owner),
           avatar: undefined,
           type: undefined,
           hasSigned: confirmedSigners.includes(owner.toLowerCase()) || confirmedSigners.includes(owner),
+          needsZapper: true,
         }));
       }
     } else {
-      // No Thirdweb client ID configured, use basic address formatting
+      // No Thirdweb client ID configured, mark all as needing Zapper
       ownerProfiles = owners.map(owner => ({
         address: owner,
         name: formatAddress(owner),
         avatar: undefined,
         type: undefined,
         hasSigned: confirmedSigners.includes(owner.toLowerCase()) || confirmedSigners.includes(owner),
+        needsZapper: true,
       }));
     }
+
+    // Step 3: Single Zapper API call for all addresses that need it
+    const addressesNeedingZapper = [
+      ...(toNeedsZapper && to ? [to] : []),
+      ...ownerProfiles.filter(p => p.needsZapper).map(p => p.address),
+    ];
+
+    if (addressesNeedingZapper.length > 0) {
+      try {
+        console.log(`Making single Zapper API call for ${addressesNeedingZapper.length} addresses:`, addressesNeedingZapper);
+        zapperProfiles = await getZapperAccountInfo(addressesNeedingZapper);
+        
+        // Update "To" address name if needed (only for genuine human-readable names)
+        if (toNeedsZapper && to && zapperProfiles[to]?.name && zapperProfiles[to]?.source !== 'address') {
+          toAddressName = zapperProfiles[to].name;
+          console.log(`Found Zapper name for "To" address: ${zapperProfiles[to].name} (${zapperProfiles[to].source})`);
+        }
+        
+        // Update owner profiles with Zapper data (only for genuine human-readable names)
+        ownerProfiles = ownerProfiles.map(profile => {
+          if (profile.needsZapper && zapperProfiles[profile.address]?.name && zapperProfiles[profile.address]?.source !== 'address') {
+            const zapperProfile = zapperProfiles[profile.address]!;
+            console.log(`Found Zapper name for owner ${profile.address}: ${zapperProfile.name} (${zapperProfile.source})`);
+            return {
+              ...profile,
+              name: zapperProfile.name,
+              type: zapperProfile.source,
+            };
+          }
+          return profile;
+        });
+        
+      } catch (error) {
+        console.warn('Failed to fetch Zapper profiles:', error);
+      }
+    }
+
+    // Step 4: Clean up temporary needsZapper property
+    ownerProfiles = ownerProfiles.map((profile) => {
+      const { needsZapper, ...cleanProfile } = profile as any;
+      return cleanProfile;
+    });
 
     return new ImageResponse(
       (
@@ -178,11 +372,10 @@ export async function GET(request: NextRequest) {
               fontWeight: 'bold',
               background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
               backgroundClip: 'text',
-              color: 'transparent',
               WebkitBackgroundClip: 'text',
             }}
           >
-            🔔 Safe Transaction Alert
+            🔔 New Safe Transaction
           </div>
 
           {/* Main Content Container */}
