@@ -7,7 +7,7 @@ This Next.js application monitors your Gnosis Safe for pending transactions and 
 - 🔔 Automatic monitoring of pending Safe transactions
 - 📱 Telegram notifications when new transactions need signatures
 - ⏰ Runs on Vercel cron (every 5 minutes)
-- 💾 Persistent storage using Vercel KV
+- 💾 Persistent storage using Vercel Edge Config Store
 - 🎛️ Web dashboard for monitoring and manual checks
 - 🔗 Direct links to sign transactions in Safe App
 - 🛠️ Uses official Safe API Kit SDK for robust Safe interactions
@@ -19,6 +19,10 @@ This Next.js application monitors your Gnosis Safe for pending transactions and 
 2. A Telegram bot and group/channel
 3. A Vercel account for deployment
 4. Node.js 18+ for local development
+
+## Important Note: Storage Migration
+
+**As of June 2025, this project has migrated from Vercel KV to Vercel Edge Config Store** due to Vercel KV being deprecated. The new implementation provides the same functionality with improved performance and reliability.
 
 ## Setup Instructions
 
@@ -112,17 +116,19 @@ vercel env add CRON_SECRET
 3. Add environment variables in Project Settings → Environment Variables
 4. Deploy
 
-### 7. Enable Vercel KV Storage (Optional but Recommended)
+### 7. Enable Vercel Edge Config Store (Optional but Recommended)
 
-Vercel KV provides persistent storage for tracking seen transactions:
+Vercel Edge Config Store provides persistent storage for tracking seen transactions:
 
 1. Go to your Vercel project dashboard
 2. Navigate to the "Storage" tab
-3. Click "Create Database" → "KV"
+3. Click "Create Database" → "Edge Config Store"
 4. Follow the setup wizard
-5. The KV environment variables will be automatically added to your project
+5. The EDGE_CONFIG environment variable will be automatically added to your project
 
-Without KV, the app will use in-memory storage (resets on each deployment).
+**Note:** Edge Config Store is read-only in production, so the app will use in-memory storage for writes and Edge Config for reads. This provides a good balance of persistence and performance.
+
+Without Edge Config, the app will use in-memory storage (resets on each deployment).
 
 ### 8. Verify Cron Job
 

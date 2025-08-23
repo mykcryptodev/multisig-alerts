@@ -11,10 +11,7 @@ export const config = {
     chatId: process.env.TELEGRAM_CHAT_ID || '',
   },
   vercel: {
-    kvUrl: process.env.KV_URL || '',
-    kvRestApiUrl: process.env.KV_REST_API_URL || '',
-    kvRestApiToken: process.env.KV_REST_API_TOKEN || '',
-    kvRestApiReadOnlyToken: process.env.KV_REST_API_READ_ONLY_TOKEN || '',
+    edgeConfig: process.env.EDGE_CONFIG || '',
   },
   cronSecret: process.env.CRON_SECRET || '',
 } as const;
