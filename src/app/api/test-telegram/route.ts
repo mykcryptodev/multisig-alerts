@@ -24,16 +24,16 @@ export async function POST(request: NextRequest) {
     try {
       // Create realistic transaction data structure that matches Safe API responses
       const testTx = {
-        safeTxHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-        safe: '0x1234567890123456789012345678901234567890',
-        to: '0xabcdef1234567890abcdef1234567890abcdef1234',
-        value: '1000000000000000000', // 1 ETH in wei
+        safeTxHash: '0x94f814db70e0c388b400dc7d0e3e9c341ac32fb75b8693b70c102af3da918953',
+        safe: '0x10f76316eB9f132a72E62481018F00cfEe326E15', // Use actual Safe address
+        to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
+        value: '0', // No ETH value for token transaction
         nonce: 42,
         operation: 0, // 0 = CALL, 1 = DELEGATECALL
         confirmations: [
           {
-            owner: '0x1234567890123456789012345678901234567890',
-            signature: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            owner: '0x06b0A2C6beeA3fd215D47324DD49E1ee3a4a9F25', // Use actual owner
+            signature: '0x94f814db70e0c388b400dc7d0e3e9c341ac32fb75b8693b70c102af3da918953',
           }
         ],
         confirmationsRequired: 2,
@@ -43,12 +43,12 @@ export async function POST(request: NextRequest) {
             {
               name: 'to',
               type: 'address',
-              value: '0xabcdef1234567890abcdef1234567890abcdef1234'
+              value: '0x06b0A2C6beeA3fd215D47324DD49E1ee3a4a9F25' // Valid recipient
             },
             {
               name: 'amount',
               type: 'uint256',
-              value: '1000000000000000000'
+              value: '2000000' // 2 USDC (6 decimals)
             }
           ]
         },
