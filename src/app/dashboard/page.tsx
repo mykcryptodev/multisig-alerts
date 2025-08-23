@@ -12,17 +12,51 @@ interface CheckResult {
   error?: string;
 }
 
+interface SafeInfo {
+  address: string;
+  nonce: number;
+  threshold: number;
+  owners: string[];
+  masterCopy: string;
+  modules: string[];
+  fallbackHandler: string;
+  guard: string;
+  version: string;
+}
+
 export default function Dashboard() {
   const [isChecking, setIsChecking] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [lastResult, setLastResult] = useState<CheckResult | null>(null);
   const [testResult, setTestResult] = useState<string>('');
   const [configLoaded, setConfigLoaded] = useState(false);
+  const [safeInfo, setSafeInfo] = useState<SafeInfo | null>(null);
+  const [loadingSafeInfo, setLoadingSafeInfo] = useState(false);
 
   useEffect(() => {
     // Load config on client side
     setConfigLoaded(true);
+    
+    // Fetch Safe info if address is configured
+    if (config.safe.address) {
+      fetchSafeInfo();
+    }
   }, []);
+
+  const fetchSafeInfo = async () => {
+    setLoadingSafeInfo(true);
+    try {
+      const response = await fetch('/api/safe-info');
+      const data = await response.json();
+      if (data.success && data.data) {
+        setSafeInfo(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch Safe info:', error);
+    } finally {
+      setLoadingSafeInfo(false);
+    }
+  };
 
   const handleManualCheck = async () => {
     setIsChecking(true);
@@ -116,6 +150,50 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* Safe Info (from API Kit) */}
+        {safeInfo && (
+          <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">
+            <h2 className="text-2xl font-semibold mb-4 text-green-400">Safe Details (via API Kit)</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-400">Current Nonce:</p>
+                <p className="font-mono">{safeInfo.nonce}</p>
+              </div>
+              <div>
+                <p className="text-gray-400">Threshold:</p>
+                <p className="font-mono">{safeInfo.threshold} of {safeInfo.owners.length}</p>
+              </div>
+              <div>
+                <p className="text-gray-400">Version:</p>
+                <p className="font-mono">{safeInfo.version}</p>
+              </div>
+              <div>
+                <p className="text-gray-400">Modules:</p>
+                <p>{safeInfo.modules.length > 0 ? `${safeInfo.modules.length} active` : 'None'}</p>
+              </div>
+            </div>
+            
+            {safeInfo.owners.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <p className="text-gray-400 mb-2">Owners:</p>
+                <div className="space-y-1">
+                  {safeInfo.owners.map((owner, index) => (
+                    <p key={index} className="font-mono text-sm text-gray-300">
+                      {index + 1}. {formatAddress(owner)}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {loadingSafeInfo && config.safe.address && (
+          <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">
+            <p className="text-gray-400">Loading Safe information...</p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">

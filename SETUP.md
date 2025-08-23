@@ -1,6 +1,6 @@
 # Gnosis Safe Monitor - Setup Guide
 
-This Next.js application monitors your Gnosis Safe for pending transactions and sends notifications to your Telegram group when signatures are needed.
+This Next.js application monitors your Gnosis Safe for pending transactions and sends notifications to your Telegram group when signatures are needed. Built with the official Safe API Kit SDK for reliable and type-safe interactions.
 
 ## Features
 
@@ -10,6 +10,8 @@ This Next.js application monitors your Gnosis Safe for pending transactions and 
 - 💾 Persistent storage using Vercel KV
 - 🎛️ Web dashboard for monitoring and manual checks
 - 🔗 Direct links to sign transactions in Safe App
+- 🛠️ Uses official Safe API Kit SDK for robust Safe interactions
+- 📊 Displays detailed Safe information (owners, threshold, nonce, etc.)
 
 ## Prerequisites
 
@@ -166,6 +168,25 @@ The message includes a direct link to sign the transaction in the Safe web app.
 - `GET /api/cron/check-safe` - Main cron endpoint (called every 5 minutes)
 - `POST /api/cron/check-safe` - Manual trigger for transaction check
 - `POST /api/test-telegram` - Test Telegram connection
+- `GET /api/safe-info` - Get detailed Safe information using Safe API Kit
+
+## Safe API Kit Integration
+
+This project uses the official [@safe-global/api-kit](https://www.npmjs.com/package/@safe-global/api-kit) SDK directly for interacting with Safe services. The API Kit provides:
+
+- **Type-safe API calls** - Full TypeScript support with proper types
+- **Automatic network routing** - Handles different Safe Transaction Service endpoints automatically
+- **Comprehensive API coverage** - Access to all Safe Transaction Service endpoints
+- **Built-in error handling** - Proper error types and messages
+- **Simple initialization** - Just provide the chainId and optionally an API key
+
+The integration provides access to:
+- Pending transactions monitoring via `getPendingTransactions()`
+- Safe information (owners, threshold, modules) via `getSafeInfo()`
+- Transaction history via `getMultisigTransactions()`
+- Confirmation tracking and more
+
+**Note:** For production use, you may want to obtain a Safe API key from [https://developer.safe.global](https://developer.safe.global) for higher rate limits.
 
 ## Customization
 

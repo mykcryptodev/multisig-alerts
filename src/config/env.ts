@@ -4,7 +4,7 @@ export const config = {
   safe: {
     chainId: process.env.SAFE_CHAIN_ID || '8453',
     address: process.env.SAFE_ADDRESS || '',
-    clientBase: process.env.SAFE_CLIENT_BASE || 'https://safe-client.safe.global',
+    apiKey: process.env.SAFE_API_KEY || '',
   },
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN || '',

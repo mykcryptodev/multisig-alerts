@@ -2,7 +2,7 @@
 // This will be called by Vercel cron
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSafeApi } from '@/lib/safe-api';
+import { checkForNewTransactions } from '@/lib/safe-api-kit';
 import { config } from '@/config/env';
 
 export const runtime = 'nodejs';
@@ -27,8 +27,7 @@ export async function GET(request: NextRequest) {
     console.log(`Safe Address: ${config.safe.address}`);
 
     // Check for new transactions
-    const safeApi = getSafeApi();
-    const result = await safeApi.checkForNewTransactions();
+    const result = await checkForNewTransactions();
 
     console.log('Check complete:', result);
 

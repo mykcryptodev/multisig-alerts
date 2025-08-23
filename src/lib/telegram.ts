@@ -1,7 +1,7 @@
 // Telegram notification service
 
 import { config, formatAddress, formatEthValue, getChainConfig } from '@/config/env';
-import { SafeTransaction } from '@/types/safe';
+// No need to import SafeTransaction since we're using Safe API Kit types directly
 
 interface TelegramMessage {
   chat_id: string;
@@ -60,7 +60,7 @@ export class TelegramService {
   }
 
   formatTransactionMessage(
-    tx: SafeTransaction,
+    tx: any, // Using any since we're getting this from Safe API Kit
     confirmations: number,
     threshold: number
   ): string {
@@ -109,7 +109,7 @@ export class TelegramService {
   }
 
   async notifyNewTransaction(
-    tx: SafeTransaction,
+    tx: any, // Using any since we're getting this from Safe API Kit
     confirmations: number,
     threshold: number
   ): Promise<boolean> {
