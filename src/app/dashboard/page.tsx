@@ -20,6 +20,7 @@ interface TelegramTestResult {
     ogImage: string;
   };
   imageError?: string;
+  transactionType?: string;
 }
 
 interface SafeInfo {
@@ -53,9 +54,11 @@ export default function Dashboard() {
   const [isChecking, setIsChecking] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isTestingOG, setIsTestingOG] = useState(false);
+  const [isTestingTransactionType, setIsTestingTransactionType] = useState<string | false>(false);
   const [lastResult, setLastResult] = useState<CheckResult | null>(null);
   const [testResult, setTestResult] = useState<TelegramTestResult | null>(null);
   const [ogTestResult, setOgTestResult] = useState<string>('');
+  const [transactionTypeTestResult, setTransactionTypeTestResult] = useState<TelegramTestResult | null>(null);
   const [configLoaded, setConfigLoaded] = useState(false);
   const [clientConfig, setClientConfig] = useState<ClientConfig | null>(null);
   const [safeInfo, setSafeInfo] = useState<SafeInfo | null>(null);
@@ -163,6 +166,40 @@ export default function Dashboard() {
       setOgTestResult('');
     } finally {
       setIsTestingOG(false);
+    }
+  };
+
+  const handleTestTransactionType = async (transactionType: 'transfer' | 'approval' | 'contract') => {
+    setIsTestingTransactionType(transactionType);
+    setTransactionTypeTestResult(null);
+    
+    try {
+      const response = await fetch(`/api/test-transaction-type`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transactionType }),
+      });
+      
+      const data = await response.json();
+      setTransactionTypeTestResult({
+        ...data,
+        transactionType: transactionType.charAt(0).toUpperCase() + transactionType.slice(1),
+      });
+    } catch (error) {
+      console.error(`Error testing ${transactionType} transaction:`, error);
+      setTransactionTypeTestResult({
+        success: false,
+        message: `Failed to test ${transactionType} transaction. Check console for details.`,
+        tests: {
+          textMessage: 'Error',
+          ogImage: 'Error',
+        },
+        transactionType: transactionType.charAt(0).toUpperCase() + transactionType.slice(1),
+      });
+    } finally {
+      setIsTestingTransactionType(false);
     }
   };
 
@@ -342,6 +379,68 @@ export default function Dashboard() {
                   >
                     View Generated Image →
                   </a>
+                </div>
+              )}
+            </div>
+
+            {/* Transaction Type Tests */}
+            <div className="border-t border-gray-700 pt-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-300">Test Transaction Types</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <button
+                    onClick={() => handleTestTransactionType('transfer')}
+                    disabled={!!isTestingTransactionType}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
+                  >
+                    {isTestingTransactionType === 'transfer' ? 'Testing...' : '💸 Test Transfer'}
+                  </button>
+                  <p className="text-xs text-gray-400 mt-1">ERC-20 token transfer</p>
+                </div>
+
+                <div>
+                  <button
+                    onClick={() => handleTestTransactionType('approval')}
+                    disabled={!!isTestingTransactionType}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
+                  >
+                    {isTestingTransactionType === 'approval' ? 'Testing...' : '🔐 Test Approval'}
+                  </button>
+                  <p className="text-xs text-gray-400 mt-1">ERC-20 token approval</p>
+                </div>
+
+                <div>
+                  <button
+                    onClick={() => handleTestTransactionType('contract')}
+                    disabled={!!isTestingTransactionType}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
+                  >
+                    {isTestingTransactionType === 'contract' ? 'Testing...' : '⚡ Test Contract Call'}
+                  </button>
+                  <p className="text-xs text-gray-400 mt-1">General contract interaction</p>
+                </div>
+              </div>
+
+              {transactionTypeTestResult && (
+                <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+                  <p className={`font-semibold ${transactionTypeTestResult.success ? 'text-green-400' : 'text-red-400'}`}>
+                    {transactionTypeTestResult.message}
+                  </p>
+                  {transactionTypeTestResult.tests && (
+                    <div className="mt-2 text-sm">
+                      <p className="text-gray-300">Test Results:</p>
+                      <ul className="list-disc list-inside text-gray-400 ml-2">
+                        <li>Text Message: <span className={transactionTypeTestResult.tests.textMessage === 'Passed' ? 'text-green-400' : 'text-red-400'}>{transactionTypeTestResult.tests.textMessage}</span></li>
+                        <li>OG Image: <span className={transactionTypeTestResult.tests.ogImage === 'Passed' ? 'text-green-400' : 'text-red-400'}>{transactionTypeTestResult.tests.ogImage}</span></li>
+                      </ul>
+                      {transactionTypeTestResult.transactionType && (
+                        <p className="text-blue-400 text-xs mt-1">Transaction Type: {transactionTypeTestResult.transactionType}</p>
+                      )}
+                      {transactionTypeTestResult.imageError && (
+                        <p className="text-yellow-400 text-xs mt-1">Image Error: {transactionTypeTestResult.imageError}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
