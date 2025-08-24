@@ -7,7 +7,12 @@
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:generate-schemas": "node scripts/switch-db.js",
+    "db:use-sqlite": "cp prisma/schema.sqlite prisma/schema.prisma && prisma generate",
+    "db:use-postgres": "cp prisma/schema.postgres prisma/schema.prisma && prisma generate",
+    "db:local": "npm run db:use-sqlite",
+    "db:production": "npm run db:use-postgres"
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",
