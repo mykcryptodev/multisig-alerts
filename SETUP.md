@@ -108,6 +108,7 @@ vercel env add SAFE_ADDRESS
 vercel env add TELEGRAM_BOT_TOKEN
 vercel env add TELEGRAM_CHAT_ID
 vercel env add CRON_SECRET
+vercel env add VERCEL_API_TOKEN  # Required for Edge Config writes
 ```
 
 #### Option B: Using GitHub
@@ -121,15 +122,25 @@ vercel env add CRON_SECRET
 
 Vercel Edge Config Store provides persistent storage for tracking seen transactions:
 
+#### Step 1: Create Edge Config
 1. Go to your Vercel project dashboard
 2. Navigate to the "Storage" tab
 3. Click "Create Database" → "Edge Config Store"
 4. Follow the setup wizard
 5. The EDGE_CONFIG environment variable will be automatically added to your project
 
-**Note:** Edge Config Store is read-only in production, so the app will use in-memory storage for writes and Edge Config for reads. This provides a good balance of persistence and performance.
+#### Step 2: Create Vercel API Token (Required for Writes)
+1. Go to [https://vercel.com/account/tokens](https://vercel.com/account/tokens)
+2. Click "Create Token"
+3. Give it a name like "Safe Monitor API Token"
+4. Select appropriate scopes (needs write access to Edge Config)
+5. Copy the token and add it to your environment variables as `VERCEL_API_TOKEN`
 
-Without Edge Config, the app will use in-memory storage (resets on each deployment).
+**Important:** According to the [Vercel Edge Config REST API documentation](https://vercel.com/docs/edge-config/vercel-api), you need two different tokens:
+- **EDGE_CONFIG**: Contains read access token for fast reads via `edge-config.vercel.com`
+- **VERCEL_API_TOKEN**: Separate API token for writes via `api.vercel.com`
+
+Without both tokens, the app will use in-memory storage (resets on each deployment).
 
 ### 8. Verify Cron Job
 

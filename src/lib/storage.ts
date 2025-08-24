@@ -1,38 +1,38 @@
 // Storage service for persisting seen transactions
-// Using Vercel Edge Config Store (replaces Vercel KV as of June 2025)
+// Using Upstash Redis for reliable, fast storage
 
-import { get } from '@vercel/edge-config';
+import { Redis } from '@upstash/redis';
 import { SeenTransaction } from '@/types/safe';
+import { config } from '@/config/env';
 
 class StorageService {
-  private edgeConfigAvailable: boolean = false;
+  private redis: Redis | null = null;
+  private redisAvailable: boolean = false;
 
   constructor() {
-    // Check if Vercel Edge Config is configured
-    this.edgeConfigAvailable = !!process.env.EDGE_CONFIG;
-  }
-
-  private getEdgeConfig() {
-    if (!this.edgeConfigAvailable) {
-      console.warn('Vercel Edge Config not available, using in-memory storage');
-      return null;
-    }
+    // Check if Upstash Redis is configured
+    this.redisAvailable = !!(config.upstash.redisUrl && config.upstash.redisToken);
     
-    return { get, set: this.setInMemory, delete: this.deleteInMemory };
+    if (this.redisAvailable) {
+      this.redis = new Redis({
+        url: config.upstash.redisUrl,
+        token: config.upstash.redisToken,
+      });
+    }
   }
 
   // In-memory fallback storage
   private memoryStore: Map<string, SeenTransaction> = new Map();
 
   async getSeenTransaction(safeTxHash: string): Promise<SeenTransaction | null> {
-    const edgeConfig = this.getEdgeConfig();
-    
-    if (edgeConfig) {
+    if (this.redis) {
       try {
-        const data = await edgeConfig.get(`safe:tx:${safeTxHash}`) as SeenTransaction | null;
-        return data;
+        const data = await this.redis.get(`safe:tx:${safeTxHash}`);
+        return data as SeenTransaction | null;
       } catch (error) {
-        console.error('Error reading from Edge Config:', error);
+        console.error('Error reading from Redis:', error);
+        // Fallback to in-memory
+        return this.memoryStore.get(safeTxHash) || null;
       }
     }
     
@@ -40,50 +40,37 @@ class StorageService {
   }
 
   async setSeenTransaction(transaction: SeenTransaction): Promise<void> {
-    const edgeConfig = this.getEdgeConfig();
-    
-    if (edgeConfig) {
+    if (this.redis) {
       try {
-        // Edge Config doesn't support dynamic keys, so we'll use a different approach
-        // We'll store all transactions under a single key and manage them in memory
-        await this.updateTransactionsInEdgeConfig(transaction);
+        await this.redis.set(`safe:tx:${transaction.safeTxHash}`, transaction);
+        console.log(`Successfully stored transaction in Redis: ${transaction.safeTxHash}`);
         return;
       } catch (error) {
-        console.error('Error writing to Edge Config:', error);
+        console.error('Error writing to Redis:', error);
+        // Fallback to in-memory
+        this.memoryStore.set(transaction.safeTxHash, transaction);
       }
-    }
-    
-    this.memoryStore.set(transaction.safeTxHash, transaction);
-  }
-
-  private async updateTransactionsInEdgeConfig(transaction: SeenTransaction): Promise<void> {
-    try {
-      // Get existing transactions
-      const existing = await get('safe_transactions') as Record<string, SeenTransaction> || {};
-      
-      // Add new transaction
-      existing[transaction.safeTxHash] = transaction;
-      
-      // Note: Edge Config is read-only in production, so we'll use in-memory for writes
-      // In a real implementation, you'd use Edge Config for reads and a different service for writes
-      this.memoryStore.set(transaction.safeTxHash, transaction);
-      
-    } catch (error) {
-      console.error('Error updating Edge Config:', error);
-      // Fallback to in-memory
+    } else {
       this.memoryStore.set(transaction.safeTxHash, transaction);
     }
   }
 
   async getAllSeenTransactions(): Promise<SeenTransaction[]> {
-    const edgeConfig = this.getEdgeConfig();
-    
-    if (edgeConfig) {
+    if (this.redis) {
       try {
-        const transactions = await get('safe_transactions') as Record<string, SeenTransaction> || {};
-        return Object.values(transactions);
+        // Get all keys matching our pattern
+        const keys = await this.redis.keys('safe:tx:*');
+        if (keys.length === 0) {
+          return [];
+        }
+        
+        // Get all transactions in one batch
+        const transactions = await this.redis.mget(...keys);
+        return transactions.filter(tx => tx !== null) as SeenTransaction[];
       } catch (error) {
-        console.error('Error listing from Edge Config:', error);
+        console.error('Error listing from Redis:', error);
+        // Fallback to in-memory
+        return Array.from(this.memoryStore.values());
       }
     }
     
@@ -107,24 +94,57 @@ class StorageService {
         lastChecked: new Date().toISOString(),
       };
       
-      if (this.edgeConfigAvailable) {
-        await this.updateTransactionsInEdgeConfig(updated);
-      } else {
-        this.memoryStore.set(safeTxHash, updated);
-      }
+      await this.setSeenTransaction(updated);
     }
   }
 
-  // Helper methods for in-memory operations
-  private setInMemory(key: string, value: any): Promise<void> {
-    this.memoryStore.set(key, value);
-    return Promise.resolve();
+  async deleteSeenTransaction(safeTxHash: string): Promise<boolean> {
+    if (this.redis) {
+      try {
+        const result = await this.redis.del(`safe:tx:${safeTxHash}`);
+        console.log(`Successfully deleted transaction from Redis: ${safeTxHash}`);
+        return result > 0;
+      } catch (error) {
+        console.error('Error deleting from Redis:', error);
+        // Fallback to in-memory
+        return this.memoryStore.delete(safeTxHash);
+      }
+    }
+    
+    // Delete from in-memory store
+    return this.memoryStore.delete(safeTxHash);
   }
 
-  private deleteInMemory(key: string): Promise<void> {
-    this.memoryStore.delete(key);
-    return Promise.resolve();
+  async clearAllTransactions(): Promise<number> {
+    if (this.redis) {
+      try {
+        // Get all keys matching our pattern
+        const keys = await this.redis.keys('safe:tx:*');
+        const count = keys.length;
+        
+        if (count > 0) {
+          // Delete all transaction keys
+          await this.redis.del(...keys);
+          console.log(`Successfully cleared ${count} transactions from Redis`);
+        }
+        
+        return count;
+      } catch (error) {
+        console.error('Error clearing Redis:', error);
+        // Fallback to in-memory
+        const count = this.memoryStore.size;
+        this.memoryStore.clear();
+        return count;
+      }
+    }
+    
+    // Clear in-memory store
+    const count = this.memoryStore.size;
+    this.memoryStore.clear();
+    return count;
   }
+
+
 }
 
 // Lazy initialization to avoid errors during build

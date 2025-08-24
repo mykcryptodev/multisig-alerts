@@ -50,6 +50,40 @@ interface ClientConfig {
   isFullyConfigured: boolean;
 }
 
+interface StorageData {
+  success: boolean;
+  storage: {
+    type: string;
+    edgeConfigAvailable: boolean;
+    edgeConfigUrl: string;
+  };
+  stats: {
+    totalTransactions: number;
+    oldestTransaction: {
+      hash: string;
+      firstSeen: string;
+      confirmations: number;
+      threshold: number;
+    } | null;
+    newestTransaction: {
+      hash: string;
+      firstSeen: string;
+      confirmations: number;
+      threshold: number;
+    } | null;
+  };
+  transactions: Array<{
+    safeTxHash: string;
+    firstSeen: string;
+    lastChecked: string;
+    confirmations: number;
+    threshold: number;
+    age: number;
+  }>;
+  error?: string;
+  details?: string;
+}
+
 export default function Dashboard() {
   const [isChecking, setIsChecking] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
@@ -63,6 +97,11 @@ export default function Dashboard() {
   const [clientConfig, setClientConfig] = useState<ClientConfig | null>(null);
   const [safeInfo, setSafeInfo] = useState<SafeInfo | null>(null);
   const [loadingSafeInfo, setLoadingSafeInfo] = useState(false);
+  const [storageData, setStorageData] = useState<StorageData | null>(null);
+  const [loadingStorage, setLoadingStorage] = useState(false);
+  const [addingTestData, setAddingTestData] = useState(false);
+  const [deletingTransaction, setDeletingTransaction] = useState<string | null>(null);
+  const [clearingAll, setClearingAll] = useState(false);
 
   useEffect(() => {
     // Load configuration from server-side API
@@ -102,6 +141,93 @@ export default function Dashboard() {
       console.error('Failed to fetch Safe info:', error);
     } finally {
       setLoadingSafeInfo(false);
+    }
+  };
+
+  const fetchStorageData = async () => {
+    setLoadingStorage(true);
+    try {
+      const response = await fetch('/api/test-storage');
+      const data = await response.json();
+      setStorageData(data);
+    } catch (error) {
+      console.error('Failed to fetch storage data:', error);
+      setStorageData({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        storage: { type: 'Unknown', edgeConfigAvailable: false, edgeConfigUrl: '[ERROR]' },
+        stats: { totalTransactions: 0, oldestTransaction: null, newestTransaction: null },
+        transactions: []
+      });
+    } finally {
+      setLoadingStorage(false);
+    }
+  };
+
+  const addTestData = async () => {
+    setAddingTestData(true);
+    try {
+      const response = await fetch('/api/test-storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add-test-data' })
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        // Refresh storage data after adding test data
+        await fetchStorageData();
+      }
+    } catch (error) {
+      console.error('Failed to add test data:', error);
+    } finally {
+      setAddingTestData(false);
+    }
+  };
+
+  const deleteTransaction = async (safeTxHash: string) => {
+    setDeletingTransaction(safeTxHash);
+    try {
+      const response = await fetch('/api/test-storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete-transaction', safeTxHash })
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        // Refresh storage data after deleting transaction
+        await fetchStorageData();
+      } else {
+        console.error('Failed to delete transaction:', result.message);
+      }
+    } catch (error) {
+      console.error('Failed to delete transaction:', error);
+    } finally {
+      setDeletingTransaction(null);
+    }
+  };
+
+  const clearAllTransactions = async () => {
+    setClearingAll(true);
+    try {
+      const response = await fetch('/api/test-storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear-all' })
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        // Refresh storage data after clearing all
+        await fetchStorageData();
+      } else {
+        console.error('Failed to clear transactions:', result.message);
+      }
+    } catch (error) {
+      console.error('Failed to clear transactions:', error);
+    } finally {
+      setClearingAll(false);
     }
   };
 
@@ -305,6 +431,165 @@ export default function Dashboard() {
             <p className="text-gray-400">Loading Safe information...</p>
           </div>
         )}
+
+        {/* Storage Viewer */}
+        <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-orange-400">Storage Data</h2>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={fetchStorageData}
+                disabled={loadingStorage}
+                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
+              >
+                {loadingStorage ? 'Loading...' : '🔄 Refresh'}
+              </button>
+              <button
+                onClick={addTestData}
+                disabled={addingTestData || loadingStorage}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
+              >
+                {addingTestData ? 'Adding...' : '➕ Add Test Data'}
+              </button>
+              {storageData && storageData.transactions.length > 0 && (
+                <button
+                  onClick={clearAllTransactions}
+                  disabled={clearingAll || loadingStorage}
+                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
+                >
+                  {clearingAll ? 'Clearing...' : '🗑️ Clear All'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {loadingStorage && (
+            <p className="text-gray-400">Loading storage data...</p>
+          )}
+
+          {storageData && !loadingStorage && (
+            <>
+              {/* Storage Configuration */}
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <p className="text-gray-400">Storage Type:</p>
+                  <p className={`font-semibold ${storageData.storage.edgeConfigAvailable ? 'text-green-400' : 'text-yellow-400'}`}>
+                    {storageData.storage.type}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Edge Config:</p>
+                  <p className={`font-mono text-sm ${storageData.storage.edgeConfigAvailable ? 'text-green-400' : 'text-gray-500'}`}>
+                    {storageData.storage.edgeConfigUrl}
+                  </p>
+                </div>
+              </div>
+
+              {/* Statistics */}
+              <div className="grid md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-700 rounded-lg">
+                <div className="text-center">
+                  <p className="text-gray-400 text-sm">Total Transactions</p>
+                  <p className="text-2xl font-bold text-blue-400">{storageData.stats.totalTransactions}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-400 text-sm">Oldest Transaction</p>
+                  <p className="text-lg font-semibold text-gray-300">
+                    {storageData.stats.oldestTransaction 
+                      ? `${Math.round((Date.now() - new Date(storageData.stats.oldestTransaction.firstSeen).getTime()) / (1000 * 60 * 60 * 24) * 10) / 10}d ago`
+                      : 'None'
+                    }
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-400 text-sm">Newest Transaction</p>
+                  <p className="text-lg font-semibold text-gray-300">
+                    {storageData.stats.newestTransaction 
+                      ? `${Math.round((Date.now() - new Date(storageData.stats.newestTransaction.firstSeen).getTime()) / (1000 * 60 * 60 * 24) * 10) / 10}d ago`
+                      : 'None'
+                    }
+                  </p>
+                </div>
+              </div>
+
+              {/* Error Display */}
+              {!storageData.success && (
+                <div className="bg-red-900 border border-red-700 rounded-lg p-4 mb-6">
+                  <p className="text-red-300 font-semibold">Storage Error</p>
+                  <p className="text-red-200 text-sm">{storageData.error}</p>
+                  {storageData.details && (
+                    <p className="text-red-200 text-xs mt-1">{storageData.details}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Transactions List */}
+              {storageData.transactions.length > 0 ? (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 text-gray-300">Stored Transactions ({storageData.transactions.length})</h3>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {storageData.transactions.map((tx, index) => (
+                      <div key={tx.safeTxHash} className="bg-gray-700 rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-gray-400 text-xs">Transaction Hash</p>
+                            <p className="font-mono text-sm text-gray-200 break-all">{tx.safeTxHash}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <p className="text-gray-400 text-xs">Age</p>
+                              <p className="text-sm text-gray-300">{tx.age}d</p>
+                            </div>
+                            <button
+                              onClick={() => deleteTransaction(tx.safeTxHash)}
+                              disabled={deletingTransaction === tx.safeTxHash}
+                              className="px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 rounded text-xs font-semibold transition-colors disabled:cursor-not-allowed"
+                              title="Delete this transaction"
+                            >
+                              {deletingTransaction === tx.safeTxHash ? '🗑️...' : '🗑️'}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                          <div>
+                            <p className="text-gray-400">First Seen</p>
+                            <p className="text-gray-300">{new Date(tx.firstSeen).toLocaleDateString()}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Last Checked</p>
+                            <p className="text-gray-300">{new Date(tx.lastChecked).toLocaleDateString()}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Confirmations</p>
+                            <p className={`font-semibold ${tx.confirmations >= tx.threshold ? 'text-green-400' : 'text-yellow-400'}`}>
+                              {tx.confirmations} / {tx.threshold}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Status</p>
+                            <p className={`text-xs font-semibold ${tx.confirmations >= tx.threshold ? 'text-green-400' : 'text-yellow-400'}`}>
+                              {tx.confirmations >= tx.threshold ? '✅ Complete' : '⏳ Pending'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 text-lg">No transactions stored yet</p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Transactions will appear here when your Safe monitor detects pending transactions that need signatures.
+                  </p>
+                  <p className="text-gray-500 text-sm mt-1">
+                    You can also add test data using the button above to see how it looks.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Actions */}
         <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">

@@ -14,8 +14,9 @@ export const config = {
     botToken: process.env.TELEGRAM_BOT_TOKEN || '',
     chatId: process.env.TELEGRAM_CHAT_ID || '',
   },
-  vercel: {
-    edgeConfig: process.env.EDGE_CONFIG || '',
+  upstash: {
+    redisUrl: process.env.UPSTASH_REDIS_REST_URL || '',
+    redisToken: process.env.UPSTASH_REDIS_REST_TOKEN || '',
   },
   thirdweb: {
     clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || '',
