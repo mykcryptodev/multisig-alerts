@@ -1,7 +1,8 @@
 // Multi-tenant multisig monitoring service
 import SafeApiKit from '@safe-global/api-kit';
 import { prisma } from '@/lib/db';
-import { Multisig, NotificationSetting, SeenTransaction } from '@prisma/client';
+import { Multisig, NotificationSetting } from '@prisma/client';
+import { checksumAddress } from 'thirdweb/utils';
 
 interface CheckResult {
   multisigId: string;
@@ -98,12 +99,15 @@ async function checkMultisig(
   try {
     const safeApi = getSafeApi(multisig.chainId, apiKey);
     
+    // Convert address to checksummed format to avoid validation errors
+    const checksummedAddress = checksumAddress(multisig.address);
+    
     // Get pending transactions
-    const pendingTxs = await safeApi.getPendingTransactions(multisig.address);
+    const pendingTxs = await safeApi.getPendingTransactions(checksummedAddress);
     
     if (pendingTxs.results && pendingTxs.results.length > 0) {
       // Get Safe info for threshold
-      const safeInfo = await safeApi.getSafeInfo(multisig.address);
+      const safeInfo = await safeApi.getSafeInfo(checksummedAddress);
       const threshold = safeInfo.threshold;
       
       for (const tx of pendingTxs.results) {
