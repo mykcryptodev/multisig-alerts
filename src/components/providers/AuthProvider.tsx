@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { ThirdwebProvider, ConnectButton } from 'thirdweb/react';
 import { client } from '@/lib/thirdweb-auth';
 import { generatePayload, login, getUser, isLoggedIn, logout } from '@/server/actions/auth';
+import { useTheme } from './ThemeProvider';
 
 interface User {
   id: string;
@@ -107,16 +108,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function ConnectWalletButton() {
   const { user, signOut } = useAuth();
+  const { theme } = useTheme();
 
   if (user) {
     return (
       <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-600">
+        <span className="text-sm opacity-70">
           {user.name || `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`}
         </span>
         <button
           onClick={signOut}
-          className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="btn btn-error btn-sm"
         >
           Sign Out
         </button>
@@ -126,6 +128,7 @@ export function ConnectWalletButton() {
 
   return (
     <ConnectButton
+      theme={theme === 'dark' ? 'dark' : 'light'}
       client={client}
       auth={{
         getLoginPayload: async (params) => {
