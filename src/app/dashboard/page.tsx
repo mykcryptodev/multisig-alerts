@@ -35,8 +35,8 @@ export default function DashboardPage() {
     name: '',
   });
   const [telegramConfig, setTelegramConfig] = useState({
-    botToken: '',
-    chatId: '',
+    telegramBotToken: '',
+    telegramChatId: '',
   });
 
   // Load user data
@@ -146,7 +146,7 @@ export default function DashboardPage() {
       
       if (response.ok) {
         setShowTelegramConfig(false);
-        setTelegramConfig({ botToken: '', chatId: '' });
+        setTelegramConfig({ telegramBotToken: '', telegramChatId: '' });
         loadUserData();
       } else {
         const error = await response.json();
@@ -252,7 +252,15 @@ export default function DashboardPage() {
               Add Multisig
             </button>
             <button
-              onClick={() => setShowTelegramConfig(true)}
+              onClick={() => {
+                if (notificationSettings) {
+                  setTelegramConfig({
+                    telegramBotToken: notificationSettings.telegramBotToken || '',
+                    telegramChatId: notificationSettings.telegramChatId || '',
+                  });
+                }
+                setShowTelegramConfig(true);
+              }}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
               Configure Telegram
@@ -440,8 +448,8 @@ export default function DashboardPage() {
                   <label className="block text-sm font-medium text-gray-700">Bot Token</label>
                   <input
                     type="text"
-                    value={telegramConfig.botToken}
-                    onChange={(e) => setTelegramConfig({ ...telegramConfig, botToken: e.target.value })}
+                    value={telegramConfig.telegramBotToken}
+                    onChange={(e) => setTelegramConfig({ ...telegramConfig, telegramBotToken: e.target.value })}
                     placeholder="123456:ABC..."
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
@@ -452,8 +460,8 @@ export default function DashboardPage() {
                   <label className="block text-sm font-medium text-gray-700">Chat ID</label>
                   <input
                     type="text"
-                    value={telegramConfig.chatId}
-                    onChange={(e) => setTelegramConfig({ ...telegramConfig, chatId: e.target.value })}
+                    value={telegramConfig.telegramChatId}
+                    onChange={(e) => setTelegramConfig({ ...telegramConfig, telegramChatId: e.target.value })}
                     placeholder="-1001234567890"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
