@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
         safe: '0x10f76316eB9f132a72E62481018F00cfEe326E15', // Use actual Safe address
         to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
         value: '0', // No ETH value for token transaction
+        data: '0xa9059cbb00000000000000000000000006b0a2c6beea3fd215d47324dd49e1ee3a4a9f2500000000000000000000000000000000000000000000000000000000001e8480', // ERC-20 transfer data
         nonce: 42,
         operation: 0, // 0 = CALL, 1 = DELEGATECALL
         confirmations: [

@@ -1,6 +1,7 @@
 // Telegram notification service
 
 import { config, formatAddress, formatEthValue, getChainConfig } from '@/config/env';
+import { generateTransactionDescription } from './ai-description';
 // No need to import SafeTransaction since we're using Safe API Kit types directly
 
 interface TelegramMessage {
@@ -207,47 +208,19 @@ export class TelegramService {
       lines.push(`<b>Method:</b> <code>${tx.dataDecoded.method}</code>`);
     }
 
-    // Add AI description for complex transactions (if not ERC-20 approve/transfer)
-    if (config.thirdweb.clientId && tx.data && tx.data !== '0x') {
-      // Check if it's a simple ERC-20 approve or transfer
-      const isApprove = tx.data.startsWith('0x095ea7b3');
-      const isTransfer = tx.data.startsWith('0xa9059cbb');
-      
-      if (!isApprove && !isTransfer) {
-        try {
-          console.log('🤖 Getting AI description for transaction...');
-          const aiResponse = await fetch('https://api.thirdweb.com/v1/ai/chat', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-client-id': config.thirdweb.clientId,
-            },
-            body: JSON.stringify({
-              messages: [
-                {
-                  role: 'user',
-                  content: `Explain what this transaction does in 1-3 simple words (like "Swap tokens", "Stake ETH", "Claim rewards"). Transaction data: ${tx.data}, Contract: ${destination}, Chain: ${chainId}`
-                }
-              ],
-              context: {
-                chain_ids: [Number(chainId)],
-                from: destination
-              }
-            })
-          });
-          
-          if (aiResponse.ok) {
-            const aiData = await aiResponse.json();
-            if (aiData.choices && aiData.choices[0]?.message?.content) {
-              const aiDescription = aiData.choices[0].message.content.trim();
-              console.log('🤖 AI description:', aiDescription);
-              lines.push(`<b>Action:</b> ${aiDescription}`);
-            }
-          }
-        } catch (error) {
-          console.warn('Failed to get AI description:', error);
-        }
-      }
+    // Add AI description for all transactions
+    const aiDescription = await generateTransactionDescription({
+      data: tx.data || '',
+      to: destination,
+      value: valueEth,
+      chainId,
+      method: tx.dataDecoded?.method
+    });
+    
+    if (aiDescription) {
+      lines.push('');
+      lines.push(`<b>🤖 AI Description:</b>`);
+      lines.push(aiDescription);
     }
 
     // Add Safe Web App link
