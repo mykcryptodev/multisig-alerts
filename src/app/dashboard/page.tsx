@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { ConnectButton } from 'thirdweb/react';
+import { client } from '@/lib/thirdweb-auth';
 
 interface Multisig {
   id: string;
@@ -224,14 +226,15 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center h-16">
             <h1 className="text-xl font-semibold text-gray-900">Multisig Alert Dashboard</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                Welcome, {user.name || `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`}
-              </span>
+              <ConnectButton client={client} />
               <button
                 onClick={signOut}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                className="p-2 cursor-pointer text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                title="Sign Out"
               >
-                Sign Out
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
               </button>
             </div>
           </div>
