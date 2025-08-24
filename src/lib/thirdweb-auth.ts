@@ -24,7 +24,7 @@ export const client = createThirdwebClient(clientConfig);
 
 // Create auth instance (only for server-side usage)
 export const thirdwebAuth = process.env.THIRDWEB_SECRET_KEY ? createAuth({
-  domain: process.env.NEXTAUTH_URL || "localhost:3000",
+  domain: process.env.VERCEL_URL || "localhost:3000",
   client,
   // Use a backend wallet to sign login payloads
   adminAccount: privateKeyToAccount({ 
