@@ -16,7 +16,7 @@ interface CheckResult {
 
 // Create Safe API instance for specific chain
 function getSafeApi(chainId: number, apiKey?: string): SafeApiKit {
-  const configOptions: any = {
+  const configOptions: { chainId: bigint; apiKey?: string } = {
     chainId: BigInt(chainId),
   };
   
@@ -88,6 +88,14 @@ async function checkMultisig(
           });
           
           // Send notification if enabled
+          console.log('🔔 Checking notification settings:', {
+            enabled: notificationSettings?.enabled,
+            hasBotToken: !!notificationSettings?.telegramBotToken,
+            hasChatId: !!notificationSettings?.telegramChatId,
+            botTokenLength: notificationSettings?.telegramBotToken?.length,
+            chatId: notificationSettings?.telegramChatId
+          });
+          
           if (notificationSettings?.enabled && 
               notificationSettings.telegramBotToken && 
               notificationSettings.telegramChatId) {
@@ -100,15 +108,34 @@ async function checkMultisig(
                 notificationSettings.telegramChatId
               );
               
+              // Convert Safe API transaction to the format expected by telegram service
+              const telegramTx = {
+                safeTxHash: tx.safeTxHash,
+                to: tx.to,
+                receiver: tx.to, // Use 'to' as receiver
+                value: tx.value,
+                dataDecoded: tx.dataDecoded,
+                operation: tx.operation,
+                nonce: tx.nonce ? Number(tx.nonce) : undefined,
+                detailedExecutionInfo: { nonce: tx.nonce ? Number(tx.nonce) : undefined },
+                data: tx.data,
+                confirmations: tx.confirmations,
+              };
+
+              console.log('📱 Attempting to send notification...');
+              
               // Use the advanced notification system with AI description and OG image
               const sent = await telegramService.notifyNewTransaction(
-                tx,
+                telegramTx,
                 confirmations,
                 threshold
               );
               
+              console.log('📱 Notification result:', { sent, safeTxHash: tx.safeTxHash });
+              
               if (sent) {
                 result.notificationsSent++;
+                console.log('✅ Notification sent successfully');
                 
                 // Mark as notified
                 await prisma.seenTransaction.update({
@@ -121,12 +148,15 @@ async function checkMultisig(
                   data: { notified: true },
                 });
               } else {
+                console.log('❌ Notification failed to send');
                 result.errors.push(`Failed to send notification for ${tx.safeTxHash}`);
               }
             } catch (error) {
               console.error('Error sending advanced notification:', error);
               result.errors.push(`Notification error: ${error}`);
             }
+          } else {
+            console.log('🔔 Notification skipped - missing settings or credentials');
           }
         } else {
           // Update confirmation count

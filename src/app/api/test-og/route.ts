@@ -32,7 +32,7 @@ export async function GET() {
         'The image should show transaction details and owner profiles',
       ],
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

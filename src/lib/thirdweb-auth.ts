@@ -3,6 +3,7 @@ import { createAuth } from "thirdweb/auth";
 import { privateKeyToAccount } from "thirdweb/wallets";
 
 // Create thirdweb client with both clientId and secretKey support
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const clientConfig: any = {};
 
 if (process.env.THIRDWEB_SECRET_KEY) {

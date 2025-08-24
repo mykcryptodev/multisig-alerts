@@ -1,9 +1,9 @@
 // API route for getting Safe information
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getSafeInfo } from '@/lib/safe-api-kit';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const safeInfo = await getSafeInfo();
     

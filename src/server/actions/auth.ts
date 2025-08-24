@@ -26,6 +26,7 @@ export async function login(params: { payload: string; signature: string }) {
   }
   
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const verifiedPayload = await thirdwebAuth.verifyPayload(params as any);
     
     if (verifiedPayload.valid) {

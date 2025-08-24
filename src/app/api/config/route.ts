@@ -25,7 +25,7 @@ export async function GET() {
       success: true,
       data: clientConfig,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

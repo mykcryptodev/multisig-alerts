@@ -132,6 +132,7 @@ export function ConnectWalletButton() {
           return generatePayload(params);
         },
         doLogin: async (params) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const result = await login(params as any);
           if (result.success) {
             // Refresh the page to update auth state
