@@ -10,6 +10,14 @@ export const runtime = 'edge';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+
+    const segmentRegular = await fetch(
+      new URL('../../../../../public/fonts/Segment/Segment-Medium.otf', import.meta.url)
+    ).then(res => res.arrayBuffer());
+
+    const segmentBold = await fetch(
+      new URL('../../../../../public/fonts/Segment/Segment-Bold.otf', import.meta.url)
+    ).then(res => res.arrayBuffer());
     
     // Parse transaction data from query parameters
     const safeTxHash = searchParams.get('safeTxHash');
@@ -45,6 +53,20 @@ export async function GET(request: NextRequest) {
         {
           width: 1200,
           height: 630,
+          fonts: [
+            {
+              name: 'Segment',
+              data: segmentRegular,
+              style: 'normal',
+              weight: 500,
+            },
+            {
+              name: 'Segment',
+              data: segmentBold,
+              style: 'normal',
+              weight: 700,
+            },
+          ],
         }
       );
     }
@@ -110,11 +132,32 @@ export async function GET(request: NextRequest) {
       {
         width: 1200,
         height: 630,
+        fonts: [
+          {
+            name: 'Segment',
+            data: segmentRegular,
+            style: 'normal',
+            weight: 500,
+          },
+          {
+            name: 'Segment',
+            data: segmentBold,
+            style: 'normal',
+            weight: 700,
+          },
+        ],
       }
     );
   } catch (error) {
     console.error('Error generating OG image:', error);
-    
+    const segmentRegular = await fetch(
+      new URL('../../../../../public/fonts/Segment/Segment-Medium.otf', import.meta.url)
+    ).then(res => res.arrayBuffer());
+
+    const segmentBold = await fetch(
+      new URL('../../../../../public/fonts/Segment/Segment-Bold.otf', import.meta.url)
+    ).then(res => res.arrayBuffer());
+
     return new ImageResponse(
       (
         <div
@@ -136,6 +179,20 @@ export async function GET(request: NextRequest) {
       {
         width: 1200,
         height: 630,
+        fonts: [
+          {
+            name: 'Segment',
+            data: segmentRegular,
+            style: 'normal',
+            weight: 500,
+          },
+          {
+            name: 'Segment',
+            data: segmentBold,
+            style: 'normal',
+            weight: 700,
+          },
+        ],
       }
     );
   }

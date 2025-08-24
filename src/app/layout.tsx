@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import localFont from "next/font/local";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const segment = localFont({
+  src: [
+    {
+      path: "../../public/fonts/Segment/Segment-Medium.otf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Segment/Segment-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-segment",
 });
 
 export const metadata: Metadata = {
@@ -29,9 +35,7 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${segment.variable} antialiased`}>
         <ThemeProvider>
           <AuthProvider>
             {children}
