@@ -27,7 +27,7 @@ A web3-native application that allows users to monitor their Gnosis Safe multisi
 
 - Node.js 18+ and npm
 - A thirdweb account and API keys
-- A Telegram bot (optional, for notifications)
+- A Telegram bot token (for the shared notification bot)
 
 ### 1. Clone and Install
 
@@ -80,7 +80,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app.
 
 1. **Connect Your Wallet**: Click "Connect Wallet" and sign in with Ethereum
 2. **Add Your Multisigs**: Configure the Safe addresses you want to monitor
-3. **Set Up Telegram**: Add your bot token and chat ID for notifications
+3. **Set Up Telegram**: Add our bot to your channel and provide the chat ID for notifications
 4. **Start Monitoring**: The app will automatically check for new transactions
 
 ### Managing Multisigs
@@ -91,8 +91,8 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app.
 
 ### Notification Settings
 
-- **Telegram Bot**: Create a bot with @BotFather and get your token
-- **Chat ID**: Add the bot to your group/channel and get the chat ID
+- **Add the Bot**: Invite the app's Telegram bot to your group/channel
+- **Chat ID**: Provide the chat ID where notifications should be sent
 - **Test Connection**: Use the "Test Telegram" button to verify setup
 
 ## API Endpoints
@@ -149,7 +149,6 @@ model Multisig {
 model NotificationSetting {
   id              String    @id @default(cuid())
   userId          String    @unique
-  telegramBotToken String?
   telegramChatId  String?
   enabled         Boolean   @default(true)
   createdAt       DateTime  @default(now())
@@ -215,7 +214,7 @@ The app includes a Vercel cron job that runs every 5 minutes to check for new tr
 
 1. **Database Connection**: Ensure your `DATABASE_URL` is correct
 2. **Thirdweb Keys**: Verify your `THIRDWEB_SECRET_KEY` and `THIRDWEB_ADMIN_PRIVATE_KEY`
-3. **Telegram Bot**: Make sure your bot is added to the group/channel
+3. **Telegram Bot**: Make sure the shared bot is added to the group/channel
 4. **Wallet Connection**: Try refreshing the page if wallet connection fails
 
 ### Development Tips

@@ -90,21 +90,17 @@ async function checkMultisig(
           // Send notification if enabled
           console.log('🔔 Checking notification settings:', {
             enabled: notificationSettings?.enabled,
-            hasBotToken: !!notificationSettings?.telegramBotToken,
             hasChatId: !!notificationSettings?.telegramChatId,
-            botTokenLength: notificationSettings?.telegramBotToken?.length,
             chatId: notificationSettings?.telegramChatId
           });
-          
-          if (notificationSettings?.enabled && 
-              notificationSettings.telegramBotToken && 
+
+          if (notificationSettings?.enabled &&
               notificationSettings.telegramChatId) {
-            
+
             try {
               // Create TelegramService instance with user's credentials
               const telegramService = new TelegramService();
-              telegramService.setCredentials(
-                notificationSettings.telegramBotToken,
+              telegramService.setChatId(
                 notificationSettings.telegramChatId
               );
               

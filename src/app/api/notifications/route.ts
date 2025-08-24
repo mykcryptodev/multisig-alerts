@@ -4,10 +4,15 @@ import { getUserFromJWT } from '@/lib/thirdweb-auth';
 
 // Send Telegram notification directly
 async function sendTelegramNotification(
-  botToken: string,
   chatId: string,
   message: string
 ): Promise<boolean> {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) {
+    console.error('Telegram bot token not configured');
+    return false;
+  }
+
   try {
     const response = await fetch(
       `https://api.telegram.org/bot${botToken}/sendMessage`,
@@ -100,34 +105,17 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const { telegramBotToken, telegramChatId, enabled } = await request.json();
-
-    // Validate required fields for Telegram
-    if (telegramBotToken && !telegramChatId) {
-      return NextResponse.json(
-        { error: 'Chat ID is required when providing bot token' },
-        { status: 400 }
-      );
-    }
-
-    if (telegramChatId && !telegramBotToken) {
-      return NextResponse.json(
-        { error: 'Bot token is required when providing chat ID' },
-        { status: 400 }
-      );
-    }
+    const { telegramChatId, enabled } = await request.json();
 
     // Update or create notification settings
     const settings = await prisma.notificationSetting.upsert({
       where: { userId: user.id },
       update: {
-        ...(telegramBotToken !== undefined && { telegramBotToken }),
-        ...(telegramChatId !== undefined && { telegramChatId }),
+        ...(telegramChatId !== undefined && { telegramChatId: telegramChatId || null }),
         ...(enabled !== undefined && { enabled }),
       },
       create: {
         userId: user.id,
-        telegramBotToken: telegramBotToken || null,
         telegramChatId: telegramChatId || null,
         enabled: enabled !== undefined ? enabled : true,
       },
@@ -171,9 +159,9 @@ export async function POST(request: NextRequest) {
     }
 
     const notificationSettings = user.notifications[0];
-    if (!notificationSettings || !notificationSettings.telegramBotToken || !notificationSettings.telegramChatId) {
+    if (!notificationSettings || !notificationSettings.telegramChatId) {
       return NextResponse.json(
-        { error: 'Telegram bot token and chat ID must be configured first' },
+        { error: 'Telegram chat ID must be configured first' },
         { status: 400 }
       );
     }
@@ -182,7 +170,6 @@ export async function POST(request: NextRequest) {
     const testMessage = `🧪 Test notification from Multisig Alert!\n\nThis is a test message to verify your Telegram integration is working correctly.\n\nWallet: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}\nTime: ${new Date().toLocaleString()}`;
 
     await sendTelegramNotification(
-      notificationSettings.telegramBotToken,
       notificationSettings.telegramChatId,
       testMessage
     );

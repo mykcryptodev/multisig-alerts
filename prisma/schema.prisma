@@ -51,7 +51,6 @@ model Multisig {
 model NotificationSetting {
   id              String    @id @default(cuid())
   userId          String    @unique
-  telegramBotToken String?
   telegramChatId  String?
   enabled         Boolean   @default(true)
   createdAt       DateTime  @default(now())

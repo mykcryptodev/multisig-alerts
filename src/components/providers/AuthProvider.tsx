@@ -24,7 +24,6 @@ interface Multisig {
 
 interface NotificationSetting {
   id: string;
-  telegramBotToken?: string | null;
   telegramChatId?: string | null;
   enabled: boolean;
 }

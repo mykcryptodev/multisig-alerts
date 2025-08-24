@@ -14,11 +14,11 @@ export async function GET() {
         explorer: chainConfig.explorer,
       },
       telegram: {
-        isConfigured: !!(config.telegram.botToken && config.telegram.chatId),
+        isConfigured: !!config.telegram.botToken,
         hasBotToken: !!config.telegram.botToken,
         hasChatId: !!config.telegram.chatId,
       },
-      isFullyConfigured: !!(config.safe.address && config.telegram.botToken && config.telegram.chatId),
+      isFullyConfigured: !!(config.safe.address && config.telegram.botToken),
     };
 
     return NextResponse.json({
