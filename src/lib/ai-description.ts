@@ -71,61 +71,6 @@ export async function generateTransactionDescription(tx: TransactionData): Promi
 }
 
 /**
- * Generate a short AI action summary (1-3 words) for a transaction
- * @param tx Transaction data
- * @returns Short action description or null if failed
- */
-export async function generateTransactionAction(tx: TransactionData): Promise<string | null> {
-  if (!config.thirdweb.secretKey || !tx.data || tx.data === '0x') {
-    return null;
-  }
-
-  try {
-    console.log('🤖 Getting AI action for transaction...');
-    
-    const aiResponse = await fetch('https://api.thirdweb.com/ai/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-secret-key': `${config.thirdweb.secretKey}`,
-      },
-      body: JSON.stringify({
-        messages: [
-          {
-            role: 'user',
-            content: `Explain what this transaction does in 1-3 simple words (like "Swap tokens", "Stake ETH", "Claim rewards"). Transaction data: ${tx.data}, Contract: ${tx.to}, Chain: ${tx.chainId}`
-          }
-        ],
-        context: {
-          chain_ids: [Number(tx.chainId)],
-          from: tx.to
-        }
-      })
-    });
-    
-    if (aiResponse.ok) {
-      const aiData = await aiResponse.json();
-      
-      // Thirdweb AI API returns the response in the 'message' field
-      if (aiData.message) {
-        const aiAction = formatAIResponseForTelegram(aiData.message.trim());
-        console.log('🤖 AI action generated successfully');
-        return aiAction;
-      } else {
-        console.warn('🤖 AI action response missing expected structure:', aiData);
-      }
-    } else {
-      const errorText = await aiResponse.text();
-      console.warn('Thirdweb AI Action API request failed:', aiResponse.status, aiResponse.statusText, errorText);
-    }
-  } catch (error) {
-    console.warn('Failed to get AI action:', error);
-  }
-  
-  return null;
-}
-
-/**
  * Format AI response for Telegram HTML display
  * Converts markdown links to HTML and cleans up formatting
  * @param text Raw AI response text
