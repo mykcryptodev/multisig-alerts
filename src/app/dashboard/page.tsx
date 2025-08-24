@@ -742,7 +742,9 @@ export default function Dashboard() {
             <div className="space-y-2">
               <p>
                 <span className="text-gray-300">Timestamp:</span>{' '}
-                {new Date(lastResult.timestamp).toLocaleString()}
+                {lastResult.timestamp && lastResult.timestamp !== 'Invalid Date' 
+                  ? new Date(lastResult.timestamp).toLocaleString()
+                  : 'Invalid Date'}
               </p>
               
               {lastResult.success && (

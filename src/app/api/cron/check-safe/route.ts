@@ -11,9 +11,13 @@ export const maxDuration = 60; // Maximum function duration in seconds
 export async function GET(request: NextRequest) {
   try {
     // Verify the request is from Vercel Cron (in production)
+    // Only check authorization for GET requests with the cron header
     if (process.env.NODE_ENV === 'production') {
+      const cronHeader = request.headers.get('x-vercel-cron');
       const authHeader = request.headers.get('authorization');
-      if (authHeader !== `Bearer ${config.cronSecret}`) {
+      
+      // If this is a cron request (has x-vercel-cron header), verify auth
+      if (cronHeader && authHeader !== `Bearer ${config.cronSecret}`) {
         console.error('Unauthorized cron request');
         return NextResponse.json(
           { error: 'Unauthorized' },
@@ -52,8 +56,37 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Optional: POST endpoint for manual triggering
+// POST endpoint for manual triggering from dashboard
 export async function POST(request: NextRequest) {
-  // You can add additional authentication here if needed
-  return GET(request);
+  try {
+    // For POST requests (manual triggers), we don't require cron authentication
+    // since these come from the dashboard UI
+    console.log('Starting manual Safe transaction check...');
+    console.log(`Chain ID: ${config.safe.chainId}`);
+    console.log(`Safe Address: ${config.safe.address}`);
+
+    // Check for new transactions
+    const result = await checkForNewTransactions();
+
+    console.log('Manual check complete:', result);
+
+    return NextResponse.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      chainId: config.safe.chainId,
+      safeAddress: config.safe.address,
+      ...result,
+    });
+  } catch (error) {
+    console.error('Error in manual check:', error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
+  }
 }
