@@ -24,6 +24,12 @@ export class TelegramService {
     }
   }
 
+  // Public method to set credentials for multi-tenant usage
+  setCredentials(botToken: string, chatId: string) {
+    this.botToken = botToken;
+    this.chatId = chatId;
+  }
+
   async sendMessage(text: string, extra: Partial<TelegramMessage> = {}): Promise<boolean> {
     if (!this.botToken || !this.chatId) {
       console.error('Telegram not configured');
