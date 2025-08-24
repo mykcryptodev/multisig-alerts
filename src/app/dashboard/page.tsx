@@ -1,796 +1,470 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { formatAddress } from '@/config/env';
+import { useEffect, useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
-interface CheckResult {
-  success: boolean;
-  timestamp: string;
-  newTransactions?: number;
-  notificationsSent?: number;
-  errors?: string[];
-  error?: string;
-}
-
-interface TelegramTestResult {
-  success: boolean;
-  message: string;
-  tests?: {
-    textMessage: string;
-    ogImage: string;
-  };
-  imageError?: string;
-  transactionType?: string;
-}
-
-interface SafeInfo {
+interface Multisig {
+  id: string;
+  chainId: number;
   address: string;
-  nonce: number;
-  threshold: number;
-  owners: string[];
-  masterCopy: string;
-  modules: string[];
-  fallbackHandler: string;
-  guard: string;
-  version: string;
+  name: string | null;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface ClientConfig {
-  safe: {
-    address: string;
-    chainId: string;
-    chainName: string;
-    explorer: string;
-  };
-  telegram: {
-    isConfigured: boolean;
-    hasBotToken: boolean;
-    hasChatId: boolean;
-  };
-  isFullyConfigured: boolean;
+interface NotificationSettings {
+  telegramBotToken: string | null;
+  telegramChatId: string | null;
+  enabled: boolean;
 }
 
-interface StorageData {
-  success: boolean;
-  storage: {
-    type: string;
-    edgeConfigAvailable: boolean;
-    edgeConfigUrl: string;
-  };
-  stats: {
-    totalTransactions: number;
-    oldestTransaction: {
-      hash: string;
-      firstSeen: string;
-      confirmations: number;
-      threshold: number;
-    } | null;
-    newestTransaction: {
-      hash: string;
-      firstSeen: string;
-      confirmations: number;
-      threshold: number;
-    } | null;
-  };
-  transactions: Array<{
-    safeTxHash: string;
-    firstSeen: string;
-    lastChecked: string;
-    confirmations: number;
-    threshold: number;
-    age: number;
-  }>;
-  error?: string;
-  details?: string;
-}
+const CHAIN_NAMES: Record<number, string> = {
+  1: 'Ethereum',
+  10: 'Optimism',
+  137: 'Polygon',
+  8453: 'Base',
+  42161: 'Arbitrum',
+};
 
-export default function Dashboard() {
-  const [isChecking, setIsChecking] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
-  const [isTestingOG, setIsTestingOG] = useState(false);
-  const [isTestingTransactionType, setIsTestingTransactionType] = useState<string | false>(false);
-  const [lastResult, setLastResult] = useState<CheckResult | null>(null);
-  const [testResult, setTestResult] = useState<TelegramTestResult | null>(null);
-  const [ogTestResult, setOgTestResult] = useState<string>('');
-  const [transactionTypeTestResult, setTransactionTypeTestResult] = useState<TelegramTestResult | null>(null);
-  const [configLoaded, setConfigLoaded] = useState(false);
-  const [clientConfig, setClientConfig] = useState<ClientConfig | null>(null);
-  const [safeInfo, setSafeInfo] = useState<SafeInfo | null>(null);
-  const [loadingSafeInfo, setLoadingSafeInfo] = useState(false);
-  const [storageData, setStorageData] = useState<StorageData | null>(null);
-  const [loadingStorage, setLoadingStorage] = useState(false);
-  const [addingTestData, setAddingTestData] = useState(false);
-  const [deletingTransaction, setDeletingTransaction] = useState<string | null>(null);
-  const [clearingAll, setClearingAll] = useState(false);
+export default function DashboardPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [multisigs, setMultisigs] = useState<Multisig[]>([]);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings | null>(null);
+  const [showAddMultisig, setShowAddMultisig] = useState(false);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [checkingTransactions, setCheckingTransactions] = useState(false);
 
+  // Form states
+  const [newMultisig, setNewMultisig] = useState({
+    chainId: '1',
+    address: '',
+    name: '',
+  });
+  const [notificationForm, setNotificationForm] = useState({
+    telegramBotToken: '',
+    telegramChatId: '',
+    enabled: true,
+  });
+
+  // Redirect if not authenticated
   useEffect(() => {
-    // Load configuration from server-side API
-    fetchConfig();
-  }, []);
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+    }
+  }, [status, router]);
 
-  const fetchConfig = async () => {
+  // Load data
+  useEffect(() => {
+    if (session?.user) {
+      loadMultisigs();
+      loadNotificationSettings();
+    }
+  }, [session]);
+
+  const loadMultisigs = async () => {
     try {
-      const response = await fetch('/api/config');
-      const data = await response.json();
-      if (data.success) {
-        setClientConfig(data.data);
-        setConfigLoaded(true);
-        
-        // Fetch Safe info if address is configured
-        if (data.data.safe.address) {
-          fetchSafeInfo();
-        }
+      const res = await fetch('/api/multisigs');
+      if (res.ok) {
+        const data = await res.json();
+        setMultisigs(data);
       }
     } catch (error) {
-      console.error('Failed to fetch configuration:', error);
-      setConfigLoaded(true); // Still set loaded to show error state
+      console.error('Error loading multisigs:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const fetchSafeInfo = async () => {
-    if (!clientConfig?.safe.address) return;
-    
-    setLoadingSafeInfo(true);
+  const loadNotificationSettings = async () => {
     try {
-      const response = await fetch('/api/safe-info');
-      const data = await response.json();
-      if (data.success && data.data) {
-        setSafeInfo(data.data);
+      const res = await fetch('/api/notifications');
+      if (res.ok) {
+        const data = await res.json();
+        setNotificationSettings(data);
+        setNotificationForm({
+          telegramBotToken: data.telegramBotToken || '',
+          telegramChatId: data.telegramChatId || '',
+          enabled: data.enabled ?? true,
+        });
       }
     } catch (error) {
-      console.error('Failed to fetch Safe info:', error);
-    } finally {
-      setLoadingSafeInfo(false);
+      console.error('Error loading notification settings:', error);
     }
   };
 
-  const fetchStorageData = async () => {
-    setLoadingStorage(true);
+  const handleAddMultisig = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const response = await fetch('/api/test-storage');
-      const data = await response.json();
-      setStorageData(data);
-    } catch (error) {
-      console.error('Failed to fetch storage data:', error);
-      setStorageData({
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        storage: { type: 'Unknown', edgeConfigAvailable: false, edgeConfigUrl: '[ERROR]' },
-        stats: { totalTransactions: 0, oldestTransaction: null, newestTransaction: null },
-        transactions: []
-      });
-    } finally {
-      setLoadingStorage(false);
-    }
-  };
-
-  const addTestData = async () => {
-    setAddingTestData(true);
-    try {
-      const response = await fetch('/api/test-storage', {
+      const res = await fetch('/api/multisigs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'add-test-data' })
+        body: JSON.stringify(newMultisig),
       });
-      const result = await response.json();
-      
-      if (result.success) {
-        // Refresh storage data after adding test data
-        await fetchStorageData();
+
+      if (res.ok) {
+        await loadMultisigs();
+        setShowAddMultisig(false);
+        setNewMultisig({ chainId: '1', address: '', name: '' });
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Failed to add multisig');
       }
     } catch (error) {
-      console.error('Failed to add test data:', error);
-    } finally {
-      setAddingTestData(false);
+      alert('Failed to add multisig');
     }
   };
 
-  const deleteTransaction = async (safeTxHash: string) => {
-    setDeletingTransaction(safeTxHash);
+  const handleToggleMultisig = async (id: string, enabled: boolean) => {
     try {
-      const response = await fetch('/api/test-storage', {
+      const res = await fetch(`/api/multisigs/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+
+      if (res.ok) {
+        await loadMultisigs();
+      }
+    } catch (error) {
+      console.error('Error toggling multisig:', error);
+    }
+  };
+
+  const handleDeleteMultisig = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this multisig?')) return;
+
+    try {
+      const res = await fetch(`/api/multisigs/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        await loadMultisigs();
+      }
+    } catch (error) {
+      console.error('Error deleting multisig:', error);
+    }
+  };
+
+  const handleSaveNotifications = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(notificationForm),
+      });
+
+      if (res.ok) {
+        await loadNotificationSettings();
+        setShowNotificationSettings(false);
+        alert('Notification settings saved!');
+      }
+    } catch (error) {
+      alert('Failed to save notification settings');
+    }
+  };
+
+  const handleTestNotifications = async () => {
+    try {
+      const res = await fetch('/api/notifications/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete-transaction', safeTxHash })
+        body: JSON.stringify({
+          telegramBotToken: notificationForm.telegramBotToken,
+          telegramChatId: notificationForm.telegramChatId,
+        }),
       });
-      const result = await response.json();
-      
-      if (result.success) {
-        // Refresh storage data after deleting transaction
-        await fetchStorageData();
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('Test notification sent successfully!');
       } else {
-        console.error('Failed to delete transaction:', result.message);
+        alert(data.error || 'Failed to send test notification');
       }
     } catch (error) {
-      console.error('Failed to delete transaction:', error);
-    } finally {
-      setDeletingTransaction(null);
+      alert('Failed to send test notification');
     }
   };
 
-  const clearAllTransactions = async () => {
-    setClearingAll(true);
+  const handleCheckTransactions = async () => {
+    setCheckingTransactions(true);
     try {
-      const response = await fetch('/api/test-storage', {
+      const res = await fetch('/api/cron/check-safe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'clear-all' })
       });
-      const result = await response.json();
-      
-      if (result.success) {
-        // Refresh storage data after clearing all
-        await fetchStorageData();
+
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Check complete! Found ${data.totalNewTransactions} new transactions, sent ${data.totalNotificationsSent} notifications.`);
       } else {
-        console.error('Failed to clear transactions:', result.message);
+        alert('Failed to check transactions');
       }
     } catch (error) {
-      console.error('Failed to clear transactions:', error);
+      alert('Failed to check transactions');
     } finally {
-      setClearingAll(false);
+      setCheckingTransactions(false);
     }
   };
 
-  const handleManualCheck = async () => {
-    setIsChecking(true);
-    setLastResult(null);
-    
-    try {
-      const response = await fetch('/api/cron/check-safe', {
-        method: 'POST',
-      });
-      
-      const data = await response.json();
-      setLastResult(data);
-    } catch (error) {
-      setLastResult({
-        success: false,
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    } finally {
-      setIsChecking(false);
-    }
-  };
-
-  const handleTestTelegram = async () => {
-    setIsTesting(true);
-    setTestResult(null);
-    
-    try {
-      const response = await fetch('/api/test-telegram', {
-        method: 'POST',
-      });
-      
-      const data = await response.json();
-      setTestResult(data);
-    } catch (error) {
-      setTestResult({
-        success: false,
-        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      });
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  const handleTestOGImage = async () => {
-    setIsTestingOG(true);
-    setOgTestResult('');
-    
-    try {
-      const response = await fetch('/api/test-og');
-      const data = await response.json();
-      
-      if (data.success) {
-        setOgTestResult(data.ogImageUrl);
-      } else {
-        setOgTestResult('');
-      }
-    } catch (error) {
-      console.error('Failed to test OG image:', error);
-      setOgTestResult('');
-    } finally {
-      setIsTestingOG(false);
-    }
-  };
-
-  const handleTestTransactionType = async (transactionType: 'transfer' | 'approval' | 'contract') => {
-    setIsTestingTransactionType(transactionType);
-    setTransactionTypeTestResult(null);
-    
-    try {
-      const response = await fetch(`/api/test-transaction-type`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ transactionType }),
-      });
-      
-      const data = await response.json();
-      setTransactionTypeTestResult({
-        ...data,
-        transactionType: transactionType.charAt(0).toUpperCase() + transactionType.slice(1),
-      });
-    } catch (error) {
-      console.error(`Error testing ${transactionType} transaction:`, error);
-      setTransactionTypeTestResult({
-        success: false,
-        message: `Failed to test ${transactionType} transaction. Check console for details.`,
-        tests: {
-          textMessage: 'Error',
-          ogImage: 'Error',
-        },
-        transactionType: transactionType.charAt(0).toUpperCase() + transactionType.slice(1),
-      });
-    } finally {
-      setIsTestingTransactionType(false);
-    }
-  };
-
-  if (!configLoaded) {
+  if (status === 'loading' || isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
       </div>
     );
   }
 
-  if (!clientConfig) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center text-red-400">Failed to load configuration</div>
-      </div>
-    );
+  if (!session) {
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-          Safe Monitor Dashboard
-        </h1>
-
-        {/* Configuration Info */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">
-          <h2 className="text-2xl font-semibold mb-4 text-blue-400">Configuration</h2>
-          <div className="grid md:grid-cols-2 gap-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex justify-between items-center">
             <div>
-              <p className="text-gray-400">Safe Address:</p>
-              <p className="font-mono text-sm break-all">{clientConfig.safe.address || 'Not configured'}</p>
+              <h1 className="text-3xl font-bold text-gray-900">Multisig Alert Dashboard</h1>
+              <p className="text-gray-600 mt-1">Welcome, {session.user.email}</p>
             </div>
-            <div>
-              <p className="text-gray-400">Chain:</p>
-              <p>{clientConfig.safe.chainName} (ID: {clientConfig.safe.chainId})</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Telegram Bot:</p>
-              <p>{clientConfig.telegram.hasBotToken ? '✅ Configured' : '❌ Not configured'}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Telegram Chat:</p>
-              <p>{clientConfig.telegram.hasChatId ? '✅ Configured' : '❌ Not configured'}</p>
+            <div className="flex gap-4">
+              <button
+                onClick={handleCheckTransactions}
+                disabled={checkingTransactions}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+              >
+                {checkingTransactions ? 'Checking...' : 'Check All Transactions'}
+              </button>
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
-          
-          {clientConfig.safe.explorer && clientConfig.safe.address && (
-            <div className="mt-4 pt-4 border-t border-gray-700">
-              <a
-                href={`${clientConfig.safe.explorer}/address/${clientConfig.safe.address}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-300 underline"
-              >
-                View Safe on {clientConfig.safe.chainName} Explorer →
-              </a>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <button
+            onClick={() => setShowAddMultisig(true)}
+            className="p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow text-left"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0 p-3 bg-blue-500 rounded-md">
+                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Add Multisig</h3>
+                <p className="text-gray-500">Add a new Safe multisig to monitor</p>
+              </div>
             </div>
-          )}
+          </button>
+
+          <button
+            onClick={() => setShowNotificationSettings(true)}
+            className="p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow text-left"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0 p-3 bg-purple-500 rounded-md">
+                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Notification Settings</h3>
+                <p className="text-gray-500">Configure Telegram notifications</p>
+              </div>
+            </div>
+          </button>
         </div>
 
-        {/* Safe Info (from API Kit) */}
-        {safeInfo && (
-          <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">
-            <h2 className="text-2xl font-semibold mb-4 text-green-400">Safe Details (via API Kit)</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-400">Current Nonce:</p>
-                <p className="font-mono">{safeInfo.nonce}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Threshold:</p>
-                <p className="font-mono">{safeInfo.threshold} of {safeInfo.owners.length}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Version:</p>
-                <p className="font-mono">{safeInfo.version}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Modules:</p>
-                <p>{safeInfo.modules.length > 0 ? `${safeInfo.modules.length} active` : 'None'}</p>
-              </div>
-            </div>
-            
-            {safeInfo.owners.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <p className="text-gray-400 mb-2">Owners:</p>
-                <div className="space-y-1">
-                  {safeInfo.owners.map((owner, index) => (
-                    <p key={index} className="font-mono text-sm text-gray-300">
-                      {index + 1}. {formatAddress(owner)}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Multisigs List */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">Your Multisigs</h2>
           </div>
-        )}
-
-        {loadingSafeInfo && clientConfig.safe.address && (
-          <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">
-            <p className="text-gray-400">Loading Safe information...</p>
-          </div>
-        )}
-
-        {/* Storage Viewer */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold text-orange-400">Storage Data</h2>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={fetchStorageData}
-                disabled={loadingStorage}
-                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
-              >
-                {loadingStorage ? 'Loading...' : '🔄 Refresh'}
-              </button>
-              <button
-                onClick={addTestData}
-                disabled={addingTestData || loadingStorage}
-                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
-              >
-                {addingTestData ? 'Adding...' : '➕ Add Test Data'}
-              </button>
-              {storageData && storageData.transactions.length > 0 && (
-                <button
-                  onClick={clearAllTransactions}
-                  disabled={clearingAll || loadingStorage}
-                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
-                >
-                  {clearingAll ? 'Clearing...' : '🗑️ Clear All'}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {loadingStorage && (
-            <p className="text-gray-400">Loading storage data...</p>
-          )}
-
-          {storageData && !loadingStorage && (
-            <>
-              {/* Storage Configuration */}
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <p className="text-gray-400">Storage Type:</p>
-                  <p className={`font-semibold ${storageData.storage.edgeConfigAvailable ? 'text-green-400' : 'text-yellow-400'}`}>
-                    {storageData.storage.type}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Edge Config:</p>
-                  <p className={`font-mono text-sm ${storageData.storage.edgeConfigAvailable ? 'text-green-400' : 'text-gray-500'}`}>
-                    {storageData.storage.edgeConfigUrl}
-                  </p>
-                </div>
+          <div className="divide-y divide-gray-200">
+            {multisigs.length === 0 ? (
+              <div className="px-6 py-12 text-center text-gray-500">
+                No multisigs added yet. Add your first multisig to get started!
               </div>
-
-              {/* Statistics */}
-              <div className="grid md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-700 rounded-lg">
-                <div className="text-center">
-                  <p className="text-gray-400 text-sm">Total Transactions</p>
-                  <p className="text-2xl font-bold text-blue-400">{storageData.stats.totalTransactions}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-gray-400 text-sm">Oldest Transaction</p>
-                  <p className="text-lg font-semibold text-gray-300">
-                    {storageData.stats.oldestTransaction 
-                      ? `${Math.round((Date.now() - new Date(storageData.stats.oldestTransaction.firstSeen).getTime()) / (1000 * 60 * 60 * 24) * 10) / 10}d ago`
-                      : 'None'
-                    }
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-gray-400 text-sm">Newest Transaction</p>
-                  <p className="text-lg font-semibold text-gray-300">
-                    {storageData.stats.newestTransaction 
-                      ? `${Math.round((Date.now() - new Date(storageData.stats.newestTransaction.firstSeen).getTime()) / (1000 * 60 * 60 * 24) * 10) / 10}d ago`
-                      : 'None'
-                    }
-                  </p>
-                </div>
-              </div>
-
-              {/* Error Display */}
-              {!storageData.success && (
-                <div className="bg-red-900 border border-red-700 rounded-lg p-4 mb-6">
-                  <p className="text-red-300 font-semibold">Storage Error</p>
-                  <p className="text-red-200 text-sm">{storageData.error}</p>
-                  {storageData.details && (
-                    <p className="text-red-200 text-xs mt-1">{storageData.details}</p>
-                  )}
-                </div>
-              )}
-
-              {/* Transactions List */}
-              {storageData.transactions.length > 0 ? (
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 text-gray-300">Stored Transactions ({storageData.transactions.length})</h3>
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {storageData.transactions.map((tx, index) => (
-                      <div key={tx.safeTxHash} className="bg-gray-700 rounded-lg p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-gray-400 text-xs">Transaction Hash</p>
-                            <p className="font-mono text-sm text-gray-200 break-all">{tx.safeTxHash}</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-right">
-                              <p className="text-gray-400 text-xs">Age</p>
-                              <p className="text-sm text-gray-300">{tx.age}d</p>
-                            </div>
-                            <button
-                              onClick={() => deleteTransaction(tx.safeTxHash)}
-                              disabled={deletingTransaction === tx.safeTxHash}
-                              className="px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 rounded text-xs font-semibold transition-colors disabled:cursor-not-allowed"
-                              title="Delete this transaction"
-                            >
-                              {deletingTransaction === tx.safeTxHash ? '🗑️...' : '🗑️'}
-                            </button>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                          <div>
-                            <p className="text-gray-400">First Seen</p>
-                            <p className="text-gray-300">{new Date(tx.firstSeen).toLocaleDateString()}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-400">Last Checked</p>
-                            <p className="text-gray-300">{new Date(tx.lastChecked).toLocaleDateString()}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-400">Confirmations</p>
-                            <p className={`font-semibold ${tx.confirmations >= tx.threshold ? 'text-green-400' : 'text-yellow-400'}`}>
-                              {tx.confirmations} / {tx.threshold}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-400">Status</p>
-                            <p className={`text-xs font-semibold ${tx.confirmations >= tx.threshold ? 'text-green-400' : 'text-yellow-400'}`}>
-                              {tx.confirmations >= tx.threshold ? '✅ Complete' : '⏳ Pending'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+            ) : (
+              multisigs.map((multisig) => (
+                <div key={multisig.id} className="px-6 py-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">
+                        {multisig.name || 'Unnamed Multisig'}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {CHAIN_NAMES[multisig.chainId] || `Chain ${multisig.chainId}`} • {multisig.address}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={multisig.enabled}
+                          onChange={(e) => handleToggleMultisig(multisig.id, e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-2 text-sm text-gray-600">Enabled</span>
+                      </label>
+                      <button
+                        onClick={() => handleDeleteMultisig(multisig.id)}
+                        className="px-3 py-1 text-sm text-red-600 hover:text-red-800"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-400 text-lg">No transactions stored yet</p>
-                  <p className="text-gray-500 text-sm mt-2">
-                    Transactions will appear here when your Safe monitor detects pending transactions that need signatures.
-                  </p>
-                  <p className="text-gray-500 text-sm mt-1">
-                    You can also add test data using the button above to see how it looks.
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-xl">
-          <h2 className="text-2xl font-semibold mb-4 text-purple-400">Actions</h2>
-          
-          <div className="space-y-4">
-            <div>
-              <button
-                onClick={handleManualCheck}
-                disabled={isChecking || !clientConfig.safe.address}
-                className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
-              >
-                {isChecking ? 'Checking...' : 'Check for New Transactions'}
-              </button>
-              
-              {!clientConfig.safe.address && (
-                <p className="text-red-400 text-sm mt-2">Configure SAFE_ADDRESS to enable</p>
-              )}
-            </div>
-
-            <div>
-              <button
-                onClick={handleTestTelegram}
-                disabled={isTesting || !clientConfig.telegram.isConfigured}
-                className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
-              >
-                {isTesting ? 'Testing...' : 'Test Telegram Connection'}
-              </button>
-              
-              {!clientConfig.telegram.isConfigured && (
-                <p className="text-red-400 text-sm mt-2">Configure Telegram credentials to enable</p>
-              )}
-              
-              {testResult && (
-                <div className="mt-2">
-                  <p className={`${testResult.success ? 'text-green-400' : 'text-red-400'}`}>
-                    {testResult.message}
-                  </p>
-                  {testResult.tests && (
-                    <div className="mt-2 text-sm">
-                      <p className="text-gray-300">Test Results:</p>
-                      <ul className="list-disc list-inside text-gray-400 ml-2">
-                        <li>Text Message: <span className={testResult.tests.textMessage === 'Passed' ? 'text-green-400' : 'text-red-400'}>{testResult.tests.textMessage}</span></li>
-                        <li>OG Image: <span className={testResult.tests.ogImage === 'Passed' ? 'text-green-400' : 'text-red-400'}>{testResult.tests.ogImage}</span></li>
-                      </ul>
-                      {testResult.imageError && (
-                        <p className="text-yellow-400 text-xs mt-1">Image Error: {testResult.imageError}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <button
-                onClick={handleTestOGImage}
-                disabled={isTestingOG}
-                className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
-              >
-                {isTestingOG ? 'Testing...' : 'Test OG Image Generation'}
-              </button>
-              
-              {ogTestResult && (
-                <div className="mt-2">
-                  <p className="text-green-400 text-sm mb-2">OG Image generated successfully!</p>
-                  <a
-                    href={ogTestResult}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 underline text-sm"
-                  >
-                    View Generated Image →
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Transaction Type Tests */}
-            <div className="border-t border-gray-700 pt-6">
-              <h3 className="text-lg font-semibold mb-4 text-gray-300">Test Transaction Types</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <button
-                    onClick={() => handleTestTransactionType('transfer')}
-                    disabled={!!isTestingTransactionType}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
-                  >
-                    {isTestingTransactionType === 'transfer' ? 'Testing...' : '💸 Test Transfer'}
-                  </button>
-                  <p className="text-xs text-gray-400 mt-1">ERC-20 token transfer</p>
-                </div>
-
-                <div>
-                  <button
-                    onClick={() => handleTestTransactionType('approval')}
-                    disabled={!!isTestingTransactionType}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
-                  >
-                    {isTestingTransactionType === 'approval' ? 'Testing...' : '🔐 Test Approval'}
-                  </button>
-                  <p className="text-xs text-gray-400 mt-1">ERC-20 token approval</p>
-                </div>
-
-                <div>
-                  <button
-                    onClick={() => handleTestTransactionType('contract')}
-                    disabled={!!isTestingTransactionType}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm"
-                  >
-                    {isTestingTransactionType === 'contract' ? 'Testing...' : '⚡ Test Contract Call'}
-                  </button>
-                  <p className="text-xs text-gray-400 mt-1">General contract interaction</p>
-                </div>
-              </div>
-
-              {transactionTypeTestResult && (
-                <div className="mt-4 p-4 bg-gray-700 rounded-lg">
-                  <p className={`font-semibold ${transactionTypeTestResult.success ? 'text-green-400' : 'text-red-400'}`}>
-                    {transactionTypeTestResult.message}
-                  </p>
-                  {transactionTypeTestResult.tests && (
-                    <div className="mt-2 text-sm">
-                      <p className="text-gray-300">Test Results:</p>
-                      <ul className="list-disc list-inside text-gray-400 ml-2">
-                        <li>Text Message: <span className={transactionTypeTestResult.tests.textMessage === 'Passed' ? 'text-green-400' : 'text-red-400'}>{transactionTypeTestResult.tests.textMessage}</span></li>
-                        <li>OG Image: <span className={transactionTypeTestResult.tests.ogImage === 'Passed' ? 'text-green-400' : 'text-red-400'}>{transactionTypeTestResult.tests.ogImage}</span></li>
-                      </ul>
-                      {transactionTypeTestResult.transactionType && (
-                        <p className="text-blue-400 text-xs mt-1">Transaction Type: {transactionTypeTestResult.transactionType}</p>
-                      )}
-                      {transactionTypeTestResult.imageError && (
-                        <p className="text-yellow-400 text-xs mt-1">Image Error: {transactionTypeTestResult.imageError}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Results */}
-        {lastResult && (
-          <div className={`rounded-lg p-6 shadow-xl ${lastResult.success ? 'bg-green-900' : 'bg-red-900'}`}>
-            <h2 className="text-2xl font-semibold mb-4">
-              {lastResult.success ? '✅ Check Complete' : '❌ Check Failed'}
-            </h2>
-            
-            <div className="space-y-2">
-              <p>
-                <span className="text-gray-300">Timestamp:</span>{' '}
-                {lastResult.timestamp && lastResult.timestamp !== 'Invalid Date' 
-                  ? new Date(lastResult.timestamp).toLocaleString()
-                  : 'Invalid Date'}
-              </p>
-              
-              {lastResult.success && (
-                <>
-                  <p>
-                    <span className="text-gray-300">New Transactions:</span>{' '}
-                    {lastResult.newTransactions || 0}
-                  </p>
-                  <p>
-                    <span className="text-gray-300">Notifications Sent:</span>{' '}
-                    {lastResult.notificationsSent || 0}
-                  </p>
-                </>
-              )}
-              
-              {lastResult.error && (
-                <p className="text-red-300">
-                  <span className="font-semibold">Error:</span> {lastResult.error}
-                </p>
-              )}
-              
-              {lastResult.errors && lastResult.errors.length > 0 && (
-                <div>
-                  <p className="text-yellow-300 font-semibold">Warnings:</p>
-                  <ul className="list-disc list-inside text-yellow-200">
-                    {lastResult.errors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
+        {/* Add Multisig Modal */}
+        {showAddMultisig && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Add New Multisig</h2>
+              <form onSubmit={handleAddMultisig}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Chain</label>
+                    <select
+                      value={newMultisig.chainId}
+                      onChange={(e) => setNewMultisig({ ...newMultisig, chainId: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    >
+                      {Object.entries(CHAIN_NAMES).map(([id, name]) => (
+                        <option key={id} value={id}>{name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Safe Address</label>
+                    <input
+                      type="text"
+                      value={newMultisig.address}
+                      onChange={(e) => setNewMultisig({ ...newMultisig, address: e.target.value })}
+                      placeholder="0x..."
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Name (optional)</label>
+                    <input
+                      type="text"
+                      value={newMultisig.name}
+                      onChange={(e) => setNewMultisig({ ...newMultisig, name: e.target.value })}
+                      placeholder="My Safe"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    />
+                  </div>
                 </div>
-              )}
+                <div className="mt-6 flex gap-3">
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    Add Multisig
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddMultisig(false)}
+                    className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
 
-        {/* Cron Status */}
-        <div className="mt-8 bg-gray-800 rounded-lg p-6 shadow-xl">
-          <h2 className="text-2xl font-semibold mb-4 text-green-400">Cron Schedule</h2>
-          <p className="text-gray-300">
-            The Safe monitor is configured to check for new transactions every 5 minutes when deployed to Vercel.
-          </p>
-          <p className="text-gray-400 text-sm mt-2">
-            Schedule: */5 * * * * (every 5 minutes)
-          </p>
-        </div>
-      </div>
+        {/* Notification Settings Modal */}
+        {showNotificationSettings && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Telegram Notification Settings</h2>
+              <form onSubmit={handleSaveNotifications}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Bot Token</label>
+                    <input
+                      type="text"
+                      value={notificationForm.telegramBotToken}
+                      onChange={(e) => setNotificationForm({ ...notificationForm, telegramBotToken: e.target.value })}
+                      placeholder="123456:ABC-DEF1234..."
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Get from @BotFather on Telegram</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Chat ID</label>
+                    <input
+                      type="text"
+                      value={notificationForm.telegramChatId}
+                      onChange={(e) => setNotificationForm({ ...notificationForm, telegramChatId: e.target.value })}
+                      placeholder="-100XXXXXXXXXX"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Your group or channel ID</p>
+                  </div>
+                  <div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={notificationForm.enabled}
+                        onChange={(e) => setNotificationForm({ ...notificationForm, enabled: e.target.checked })}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Enable notifications</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="mt-6 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleTestNotifications}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                  >
+                    Test
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    Save Settings
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowNotificationSettings(false)}
+                    className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
