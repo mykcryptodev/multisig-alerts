@@ -61,8 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      await logout();
+      console.log('Client-side signOut called');
+      const result = await logout();
+      console.log('Logout result:', result);
       setUser(null);
+      // Force redirect to home page
+      window.location.href = '/';
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -138,7 +142,14 @@ export function ConnectWalletButton() {
           return isLoggedIn();
         },
         doLogout: async () => {
-          await signOut();
+          try {
+            console.log('ConnectButton doLogout called');
+            await logout();
+            // Clear local state and redirect
+            window.location.href = '/';
+          } catch (error) {
+            console.error('Logout error:', error);
+          }
         },
       }}
     />

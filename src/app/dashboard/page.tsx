@@ -19,7 +19,7 @@ interface NotificationSetting {
 }
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, signOut } = useAuth();
   const [multisigs, setMultisigs] = useState<Multisig[]>([]);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSetting | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -228,7 +228,7 @@ export default function DashboardPage() {
                 Welcome, {user.name || `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`}
               </span>
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={signOut}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Sign Out

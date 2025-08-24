@@ -66,6 +66,7 @@ export async function login(params: { payload: string; signature: string }) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/',
       });
 
       return { success: true, user };
@@ -118,8 +119,24 @@ export async function isLoggedIn() {
 // Logout user
 export async function logout() {
   try {
+    console.log('Logout function called');
     const cookieStore = await cookies();
-    cookieStore.delete('auth-token');
+    
+    // Check if cookie exists before clearing
+    const existingToken = cookieStore.get('auth-token');
+    console.log('Existing auth token:', existingToken ? 'exists' : 'not found');
+    
+    // Clear the auth token cookie by setting it to expire immediately
+    cookieStore.set('auth-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 0,
+      expires: new Date(0),
+    });
+    
+    console.log('Auth token cookie cleared');
     return { success: true };
   } catch (error) {
     console.error('Logout error:', error);
