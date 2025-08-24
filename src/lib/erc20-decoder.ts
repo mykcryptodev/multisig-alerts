@@ -30,8 +30,8 @@ export interface ERC20TransactionDetails {
 export async function decodeERC20Transaction(
   data: string,
   to: string,
-  client: any,
-  chain: any
+  client: ReturnType<typeof createThirdwebClient>,
+  chain: { id: number; rpc: string }
 ): Promise<ERC20TransactionDetails | null> {
   try {
     const isApprove = data.startsWith('0x095ea7b3'); // approve(address,uint256)
@@ -120,8 +120,8 @@ export async function decodeERC20Transaction(
       };
     }
 
-  } catch (error) {
-    console.warn('Failed to decode ERC-20 transaction:', error);
+  } catch {
+    console.warn('Failed to decode ERC-20 transaction');
     return { isApprove: false, isTransfer: false };
   }
 }
@@ -133,8 +133,8 @@ export async function decodeERC20Transaction(
  * @param isApproval Whether this is for an approval (affects contract name lookup)
  * @returns Resolved name or formatted address
  */
-async function resolveAddressName(address: string, client: any, isApproval: boolean = false): Promise<string> {
-  let name = formatAddress(address);
+async function resolveAddressName(address: string, client: ReturnType<typeof createThirdwebClient>, isApproval: boolean = false): Promise<string> {
+  const name = formatAddress(address);
   const targetLabel = isApproval ? 'spender' : 'recipient';
   
   // 1. Try Thirdweb social profiles first

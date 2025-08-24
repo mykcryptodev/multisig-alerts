@@ -2,7 +2,20 @@
 
 import { config, formatAddress, formatEthValue, getChainConfig } from '@/config/env';
 import { generateTransactionDescription } from './ai-description';
-// No need to import SafeTransaction since we're using Safe API Kit types directly
+
+// Type for Safe transaction data
+interface SafeTransaction {
+  safeTxHash: string;
+  to?: string;
+  receiver?: string;
+  value?: string;
+  dataDecoded?: { value?: string; method?: string };
+  operation?: number;
+  nonce?: number;
+  detailedExecutionInfo?: { nonce?: number };
+  data?: string;
+  confirmations?: Array<{ owner: string }>;
+}
 
 interface TelegramMessage {
   chat_id: string;
@@ -22,6 +35,12 @@ export class TelegramService {
     if (!this.botToken || !this.chatId) {
       console.warn('Telegram credentials not configured');
     }
+  }
+
+  // Public method to set credentials for multi-tenant usage
+  setCredentials(botToken: string, chatId: string) {
+    this.botToken = botToken;
+    this.chatId = chatId;
   }
 
   async sendMessage(text: string, extra: Partial<TelegramMessage> = {}): Promise<boolean> {
@@ -115,7 +134,6 @@ export class TelegramService {
         return await this.sendPhotoAlternative(photoUrl, caption);
       }
 
-      const result = await response.json();
       console.log('✅ Photo sent successfully');
       return true;
     } catch (error) {
@@ -167,7 +185,7 @@ export class TelegramService {
   }
 
   async formatTransactionMessage(
-    tx: any, // Using any since we're getting this from Safe API Kit
+    tx: SafeTransaction, // Safe API transaction type
     confirmations: number,
     threshold: number
   ): Promise<string> {
@@ -238,7 +256,7 @@ export class TelegramService {
   }
 
   async notifyNewTransaction(
-    tx: any, // Using any since we're getting this from Safe API Kit
+    tx: SafeTransaction, // Safe API transaction type
     confirmations: number,
     threshold: number
   ): Promise<boolean> {
@@ -279,7 +297,7 @@ export class TelegramService {
   }
 
   private async generateOGImageUrl(
-    tx: any,
+    tx: SafeTransaction,
     confirmations: number,
     threshold: number
   ): Promise<string | null> {
@@ -328,7 +346,7 @@ export class TelegramService {
       console.log('🔍 Found owners:', safeInfo.data.owners);
 
       // Extract confirmed signers from transaction confirmations
-      const confirmedSigners = tx.confirmations?.map((conf: any) => conf.owner) || [];
+      const confirmedSigners = tx.confirmations?.map((conf: { owner: string }) => conf.owner) || [];
       console.log('🔍 Confirmed signers:', confirmedSigners);
 
       // Build query parameters for OG image

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // Test function to show before/after formatting
 function formatAIResponseForTelegram(text: string): string {
@@ -31,7 +31,7 @@ function formatAIResponseForTelegram(text: string): string {
   return formatted;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const sampleAIResponse = `This blockchain transaction calls the \`transfer\` function on the USD Coin (USDC) contract at [\`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913\`](https://thirdweb.com/8453/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913) on Base. 
 
 It sends precisely **1.0 USDC** (with 6 decimals, value = 1,000,000 base units) to the recipient address [\`0x06b0a2c6beea3fd215d47324dd49e1ee3a4a9f25\`](https://thirdweb.com/8453/0x06b0a2c6beea3fd215d47324dd49e1ee3a4a9f25). 

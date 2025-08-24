@@ -1,9 +1,9 @@
 // API route for testing Telegram connection
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getTelegram } from '@/lib/telegram';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const telegram = getTelegram();
     

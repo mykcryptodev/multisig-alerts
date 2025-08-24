@@ -3,14 +3,16 @@
 import { getSocialProfiles } from 'thirdweb/social';
 import { getContract, readContract } from 'thirdweb';
 import { formatAddress, chainConfig } from '@/config/env';
-import { getZapperAccountInfo, ZapperAccountInfo } from './zapper';
+import { getZapperAccountInfo } from './zapper';
+import { createThirdwebClient } from 'thirdweb';
 
 export interface ProfileInfo {
   address: string;
   name: string;
   avatar?: string;
-  type?: string;
+  type?: "farcaster" | "lens" | "ens" | undefined;
   hasSigned: boolean;
+  needsZapper?: boolean; // Temporary property for internal logic
 }
 
 export interface AddressProfile {
@@ -29,7 +31,7 @@ export interface AddressProfile {
 export async function resolveMultipleProfiles(
   addresses: string[],
   confirmedSigners: string[],
-  client: any
+  client: ReturnType<typeof createThirdwebClient>
 ): Promise<ProfileInfo[]> {
   if (!client || addresses.length === 0) {
     return addresses.map(address => ({
@@ -71,7 +73,6 @@ export async function resolveMultipleProfiles(
           avatar: undefined,
           type: undefined,
           hasSigned: confirmedSigners.includes(address.toLowerCase()) || confirmedSigners.includes(address),
-          needsZapper: true,
         };
       }
     })
@@ -79,8 +80,8 @@ export async function resolveMultipleProfiles(
 
   // Step 2: Batch Zapper lookup for addresses that need it
   const addressesNeedingZapper = profiles
-    .filter((p: any) => p.needsZapper)
-    .map((p: any) => p.address);
+    .filter((p) => p.needsZapper)
+    .map((p) => p.address);
 
   if (addressesNeedingZapper.length > 0) {
     try {
@@ -88,12 +89,12 @@ export async function resolveMultipleProfiles(
       const zapperProfiles = await getZapperAccountInfo(addressesNeedingZapper);
       
       // Update profiles with Zapper data (only for genuine human-readable names)
-      profiles.forEach((profile: any) => {
+      profiles.forEach((profile) => {
         if (profile.needsZapper && zapperProfiles[profile.address]?.name && zapperProfiles[profile.address]?.source !== 'address') {
           const zapperProfile = zapperProfiles[profile.address]!;
           console.log(`Found Zapper name for ${profile.address}: ${zapperProfile.name} (${zapperProfile.source})`);
           profile.name = zapperProfile.name;
-          profile.type = zapperProfile.source;
+          profile.type = zapperProfile.source as "farcaster" | "lens" | "ens" | undefined;
         }
       });
     } catch (error) {
@@ -102,7 +103,7 @@ export async function resolveMultipleProfiles(
   }
 
   // Step 3: Clean up temporary needsZapper property
-  return profiles.map((profile: any) => {
+  return profiles.map((profile) => {
     const { needsZapper, ...cleanProfile } = profile;
     return cleanProfile;
   });
@@ -117,7 +118,7 @@ export async function resolveMultipleProfiles(
  */
 export async function resolveSingleAddress(
   address: string,
-  client: any,
+  client: ReturnType<typeof createThirdwebClient>,
   chainId?: string | number
 ): Promise<AddressProfile> {
   let name = formatAddress(address);

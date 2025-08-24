@@ -1,7 +1,7 @@
 import { ImageResponse } from '@vercel/og';
 import { NextRequest } from 'next/server';
 import { formatAddress, formatEthValue, getChainConfig, chainConfig } from '@/config/env';
-import { decodeERC20Transaction, createThirdwebClientIfConfigured } from '@/lib/erc20-decoder';
+import { decodeERC20Transaction, createThirdwebClientIfConfigured, ERC20TransactionDetails } from '@/lib/erc20-decoder';
 import { resolveMultipleProfiles, resolveSingleAddress } from '@/lib/profile-resolver';
 import { TransactionImage } from '@/components/og/TransactionImage';
 
@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
     const chainId = searchParams.get('chainId') || '8453';
     const to = searchParams.get('to');
     const value = searchParams.get('value') || '0';
-    const nonce = searchParams.get('nonce');
     const confirmations = searchParams.get('confirmations') || '0';
     const threshold = searchParams.get('threshold') || '1';
     const owners = searchParams.get('owners')?.split(',') || [];
@@ -55,7 +54,7 @@ export async function GET(request: NextRequest) {
     const valueEth = formatEthValue(value);
     
     // Try to decode ERC-20 transaction (approve or transfer)
-    let tokenDetails: any = null;
+    let tokenDetails: ERC20TransactionDetails | null = null;
     const client = createThirdwebClientIfConfigured();
     if (client && data && to) {
       try {
@@ -71,7 +70,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Resolve profiles for owners and "to" address
-    let ownerProfiles: any[] = [];
+    let ownerProfiles: Array<{ address: string; name: string; hasSigned: boolean }> = [];
     let toAddressName = 'Unknown';
     
     if (client) {
@@ -104,7 +103,7 @@ export async function GET(request: NextRequest) {
           confirmations={confirmations}
           threshold={threshold}
           method={method || undefined}
-          tokenDetails={tokenDetails}
+          tokenDetails={tokenDetails || undefined}
           ownerProfiles={ownerProfiles}
         />
       ),

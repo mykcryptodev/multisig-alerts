@@ -16,7 +16,7 @@ function getSafeApi(): SafeApiKit {
     
     // SafeApiKit requires an API key for production use
     // You can get one at https://developer.safe.global
-    const configOptions: any = {
+    const configOptions: { chainId: bigint; apiKey?: string } = {
       chainId: BigInt(config.safe.chainId),
     };
     
@@ -71,7 +71,22 @@ export async function checkForNewTransactions() {
           // Send notification with OG image
           try {
             const telegram = getTelegram();
-            const sent = await telegram.notifyNewTransaction(tx, confirmations, threshold);
+            
+            // Convert Safe API transaction to the format expected by telegram service
+            const telegramTx = {
+              safeTxHash: tx.safeTxHash,
+              to: tx.to,
+              receiver: tx.to, // Use 'to' as receiver
+              value: tx.value,
+              dataDecoded: tx.dataDecoded,
+              operation: tx.operation,
+              nonce: tx.nonce ? Number(tx.nonce) : undefined,
+              detailedExecutionInfo: { nonce: tx.nonce ? Number(tx.nonce) : undefined },
+              data: tx.data,
+              confirmations: tx.confirmations,
+            };
+            
+            const sent = await telegram.notifyNewTransaction(telegramTx, confirmations, threshold);
             
             if (sent) {
               notificationsSent++;
@@ -96,46 +111,6 @@ export async function checkForNewTransactions() {
   } catch (error) {
     console.error('Failed to check transactions:', error);
     throw error;
-  }
-}
-
-function formatNotificationMessage(tx: any, confirmations: number, threshold: number) {
-  const chainName = getChainName(config.safe.chainId);
-  const safeUrl = `https://app.safe.global/${chainName}:${config.safe.address}/transactions/tx?id=multisig_${config.safe.address}_${tx.safeTxHash}`;
-  
-  return [
-    `<b>🔔 New Safe Transaction Needs Signatures</b>`,
-    '',
-    `<b>Safe:</b> ${config.safe.address.slice(0, 6)}…${config.safe.address.slice(-4)} on ${chainName}`,
-    `<b>Nonce:</b> ${tx.nonce || 'unknown'}`,
-    `<b>Signatures:</b> ${confirmations}/${threshold} required`,
-    '',
-    `<b>To:</b> ${tx.to ? `${tx.to.slice(0, 6)}…${tx.to.slice(-4)}` : 'unknown'}`,
-    `<b>Value:</b> ${tx.value === '0' ? '0' : formatEthValue(tx.value)} ETH`,
-    '',
-    `<a href="${safeUrl}">✅ Sign Transaction in Safe App</a>`
-  ].join('\n');
-}
-
-function getChainName(chainId: string): string {
-  const chains: Record<string, string> = {
-    '1': 'ethereum',
-    '10': 'optimism', 
-    '137': 'polygon',
-    '8453': 'base',
-    '42161': 'arbitrum'
-  };
-  return chains[chainId] || `chain-${chainId}`;
-}
-
-function formatEthValue(valueWei: string): string {
-  if (!valueWei || valueWei === '0') return '0';
-  try {
-    const wei = BigInt(valueWei);
-    const eth = Number(wei / BigInt(10 ** 14)) / 10000;
-    return eth.toFixed(4).replace(/\.?0+$/, '');
-  } catch {
-    return '0';
   }
 }
 
