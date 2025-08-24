@@ -196,6 +196,27 @@ export default function DashboardPage() {
     }
   };
 
+  const handleTestTransactionType = async (transactionType: 'transfer' | 'approval' | 'contract') => {
+    try {
+      const response = await fetch('/api/test-transaction-type', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactionType }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert(`✅ ${result.message}`);
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || error.message}`);
+      }
+    } catch (error) {
+      console.error(`Error testing ${transactionType} transaction:`, error);
+      alert(`Failed to test ${transactionType} transaction`);
+    }
+  };
+
   if (isLoading || isLoadingData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -276,6 +297,31 @@ export default function DashboardPage() {
               className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
             >
               Manual Check
+            </button>
+            
+            {/* Test Transaction Type Buttons */}
+            <button
+              onClick={() => handleTestTransactionType('transfer')}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              title="Test transfer transaction notifications"
+            >
+              Test Transfer
+            </button>
+            
+            <button
+              onClick={() => handleTestTransactionType('approval')}
+              className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              title="Test approval transaction notifications"
+            >
+              Test Approval
+            </button>
+            
+            <button
+              onClick={() => handleTestTransactionType('contract')}
+              className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              title="Test contract call notifications"
+            >
+              Test Contract
             </button>
           </div>
         </div>
