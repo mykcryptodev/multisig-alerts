@@ -97,7 +97,6 @@ export async function GET(request: NextRequest) {
       (
         <TransactionImage
           safeTxHash={safeTxHash}
-          safeAddress={safeAddress}
           chainName={chain.name}
           toAddress={to || ''}
           toAddressName={toAddressName}
@@ -105,7 +104,6 @@ export async function GET(request: NextRequest) {
           confirmations={confirmations}
           threshold={threshold}
           method={method || undefined}
-          nonce={nonce || undefined}
           tokenDetails={tokenDetails}
           ownerProfiles={ownerProfiles}
         />

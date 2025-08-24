@@ -7,7 +7,6 @@ import { ProfileInfo } from '@/lib/profile-resolver';
 export interface TransactionImageProps {
   // Transaction data
   safeTxHash: string;
-  safeAddress: string;
   chainName: string;
   toAddress: string;
   toAddressName: string;
@@ -15,7 +14,6 @@ export interface TransactionImageProps {
   confirmations: string;
   threshold: string;
   method?: string;
-  nonce?: string;
   
   // ERC-20 token details
   tokenDetails?: ERC20TransactionDetails;
@@ -26,7 +24,6 @@ export interface TransactionImageProps {
 
 export function TransactionImage({
   safeTxHash,
-  safeAddress,
   chainName,
   toAddress,
   toAddressName,
@@ -34,7 +31,6 @@ export function TransactionImage({
   confirmations,
   threshold,
   method,
-  nonce,
   tokenDetails,
   ownerProfiles,
 }: TransactionImageProps) {
@@ -79,14 +75,12 @@ export function TransactionImage({
         {/* Transaction Info Card - Only show if NOT an approval or transfer */}
         {!tokenDetails?.isApprove && !tokenDetails?.isTransfer && (
           <TransactionInfoCard
-            safeAddress={safeAddress}
             toAddress={toAddress}
             toAddressName={toAddressName}
             valueEth={valueEth}
             confirmations={confirmations}
             threshold={threshold}
             method={method}
-            nonce={nonce}
           />
         )}
 
@@ -229,23 +223,19 @@ function TransferDetails({ tokenDetails }: { tokenDetails: ERC20TransactionDetai
 }
 
 function TransactionInfoCard({
-  safeAddress,
   toAddress,
   toAddressName,
   valueEth,
   confirmations,
   threshold,
   method,
-  nonce,
 }: {
-  safeAddress: string;
   toAddress: string;
   toAddressName: string;
   valueEth: string;
   confirmations: string;
   threshold: string;
   method?: string;
-  nonce?: string;
 }) {
   return (
     <div
@@ -261,14 +251,6 @@ function TransactionInfoCard({
         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
       }}
     >
-      <DetailRow 
-        icon="🏦"
-        label="Safe Address:" 
-        value={formatAddress(safeAddress)}
-        valueColor="#60a5fa"
-        isMonospace={true}
-      />
-
       <DetailRow 
         icon="📤"
         label="To Address:" 
@@ -302,12 +284,6 @@ function TransactionInfoCard({
         />
       )}
 
-      <DetailRow 
-        icon="🔢"
-        label="Nonce:" 
-        value={nonce || 'Unknown'}
-        valueColor="#06b6d4"
-      />
     </div>
   );
 }
