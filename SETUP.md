@@ -17,7 +17,7 @@ This Next.js application monitors your Gnosis Safe for pending transactions and 
 ## Prerequisites
 
 1. A Gnosis Safe multisig wallet
-2. A Telegram bot and group/channel
+2. A Telegram bot token for the shared bot and a group/channel
 3. A Vercel account for deployment
 4. Node.js 18+ for local development
 
@@ -39,7 +39,8 @@ npm install
 1. Open Telegram and search for **@BotFather**
 2. Send `/newbot` and follow the prompts
 3. Save the bot token (looks like: `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`)
-4. Add the bot to your group as an admin
+4. This single bot token will be used by all app users
+5. Add the bot to your group as an admin
 
 ### 3. Get Telegram Chat ID
 
@@ -66,8 +67,8 @@ SAFE_ADDRESS=0xYourSafeAddress              # Your Safe address
 SAFE_CLIENT_BASE=https://safe-client.safe.global
 
 # Telegram Configuration
-TELEGRAM_BOT_TOKEN=your-bot-token-here      # From @BotFather
-TELEGRAM_CHAT_ID=-100XXXXXXXXXX             # Your group/channel ID
+TELEGRAM_BOT_TOKEN=your-bot-token-here      # From @BotFather (shared bot)
+TELEGRAM_CHAT_ID=-100XXXXXXXXXX             # Optional: default group/channel ID
 
 # Cron Security (generate a random string)
 CRON_SECRET=your-random-secret-here

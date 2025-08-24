@@ -17,7 +17,6 @@ interface Multisig {
 
 interface NotificationSetting {
   id: string;
-  telegramBotToken?: string | null;
   telegramChatId?: string | null;
   enabled: boolean;
 }
@@ -38,7 +37,6 @@ export default function DashboardPage() {
     name: '',
   });
   const [telegramConfig, setTelegramConfig] = useState({
-    telegramBotToken: '',
     telegramChatId: '',
   });
 
@@ -149,7 +147,7 @@ export default function DashboardPage() {
       
       if (response.ok) {
         setShowTelegramConfig(false);
-        setTelegramConfig({ telegramBotToken: '', telegramChatId: '' });
+        setTelegramConfig({ telegramChatId: '' });
         loadUserData();
       } else {
         const error = await response.json();
@@ -280,7 +278,6 @@ export default function DashboardPage() {
               onClick={() => {
                 if (notificationSettings) {
                   setTelegramConfig({
-                    telegramBotToken: notificationSettings.telegramBotToken || '',
                     telegramChatId: notificationSettings.telegramChatId || '',
                   });
                 }
@@ -384,18 +381,6 @@ export default function DashboardPage() {
             
             {notificationSettings ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm opacity-70">Telegram Bot Token</p>
-                    <p className="font-mono text-sm">
-                      {notificationSettings.telegramBotToken ? 
-                        `${notificationSettings.telegramBotToken.slice(0, 10)}...` : 
-                        'Not configured'
-                      }
-                    </p>
-                  </div>
-                </div>
-                
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm opacity-70">Telegram Chat ID</p>
@@ -510,20 +495,6 @@ export default function DashboardPage() {
             <h3 className="font-bold text-lg mb-4">Configure Telegram Notifications</h3>
             <form onSubmit={handleUpdateNotifications}>
               <div className="space-y-4">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Bot Token</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={telegramConfig.telegramBotToken}
-                    onChange={(e) => setTelegramConfig({ ...telegramConfig, telegramBotToken: e.target.value })}
-                    placeholder="123456:ABC..."
-                    className="input input-bordered w-full"
-                    required
-                  />
-                </div>
-                
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">Chat ID</span>

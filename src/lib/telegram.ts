@@ -26,20 +26,19 @@ interface TelegramMessage {
 
 export class TelegramService {
   private botToken: string;
-  private chatId: string;
+  private chatId?: string;
 
   constructor() {
     this.botToken = config.telegram.botToken;
     this.chatId = config.telegram.chatId;
-    
-    if (!this.botToken || !this.chatId) {
-      console.warn('Telegram credentials not configured');
+
+    if (!this.botToken) {
+      console.warn('Telegram bot token not configured');
     }
   }
 
-  // Public method to set credentials for multi-tenant usage
-  setCredentials(botToken: string, chatId: string) {
-    this.botToken = botToken;
+  // Set chat ID for multi-tenant usage
+  setChatId(chatId: string) {
     this.chatId = chatId;
   }
 
