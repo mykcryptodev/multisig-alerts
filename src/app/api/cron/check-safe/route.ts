@@ -2,7 +2,7 @@
 // This will be called by Vercel cron
 
 import { NextRequest, NextResponse } from 'next/server';
-import { checkForNewTransactions } from '@/lib/safe-api-kit';
+import { checkAllMultisigs } from '@/lib/multisig-monitor';
 import { config } from '@/config/env';
 
 export const runtime = 'nodejs';
@@ -26,20 +26,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log('Starting Safe transaction check...');
-    console.log(`Chain ID: ${config.safe.chainId}`);
-    console.log(`Safe Address: ${config.safe.address}`);
+    console.log('Starting multi-tenant Safe transaction check...');
 
-    // Check for new transactions
-    const result = await checkForNewTransactions();
+    // Check all registered multisigs
+    const result = await checkAllMultisigs();
 
     console.log('Check complete:', result);
 
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      chainId: config.safe.chainId,
-      safeAddress: config.safe.address,
       ...result,
     });
   } catch (error) {
@@ -61,20 +57,16 @@ export async function POST(request: NextRequest) {
   try {
     // For POST requests (manual triggers), we don't require cron authentication
     // since these come from the dashboard UI
-    console.log('Starting manual Safe transaction check...');
-    console.log(`Chain ID: ${config.safe.chainId}`);
-    console.log(`Safe Address: ${config.safe.address}`);
+    console.log('Starting manual multi-tenant Safe transaction check...');
 
-    // Check for new transactions
-    const result = await checkForNewTransactions();
+    // Check all registered multisigs
+    const result = await checkAllMultisigs();
 
     console.log('Manual check complete:', result);
 
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      chainId: config.safe.chainId,
-      safeAddress: config.safe.address,
       ...result,
     });
   } catch (error) {

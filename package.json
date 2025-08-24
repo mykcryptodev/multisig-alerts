@@ -9,23 +9,27 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/client": "^6.14.0",
     "@safe-global/api-kit": "^4.0.0",
     "@safe-global/safe-core-sdk-types": "^5.1.0",
     "@upstash/redis": "^1.35.3",
     "@vercel/og": "^0.8.5",
     "next": "15.5.0",
+    "prisma": "^6.14.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "thirdweb": "^5.105.37"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/eslint-plugin-next": "^15.5.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

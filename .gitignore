@@ -40,3 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+<<<<<<< Current (Your changes)
+=======
+
+/src/generated/prisma
+>>>>>>> Incoming (Background Agent changes)

@@ -1,134 +1,119 @@
-import Link from "next/link";
+'use client';
 
-export default function Home() {
+import { useAuth } from '@/components/providers/AuthProvider';
+import { ConnectWalletButton } from '@/components/providers/AuthProvider';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function HomePage() {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && !isLoading) {
+      router.push('/dashboard');
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Hero Section */}
-          <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Safe Monitor
-            </h1>
-            <p className="text-xl text-gray-300 mb-8">
-              Automated Gnosis Safe transaction monitoring with Telegram notifications
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link
-                href="/dashboard"
-                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg font-semibold transition-all transform hover:scale-105 inline-block"
-              >
-                Open Dashboard
-              </Link>
-              <a
-                href="/SETUP.md"
-                className="px-8 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition-all inline-block"
-              >
-                View Setup Guide
-              </a>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <h1 className="text-xl font-semibold text-gray-900">Multisig Alert</h1>
+            <ConnectWalletButton />
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
+            Never Miss a
+            <span className="text-blue-600"> Multisig Transaction</span>
+          </h1>
+          <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-500">
+            Get instant Telegram notifications when your Gnosis Safe multisig has pending transactions 
+            that require your signature. Monitor multiple safes across different chains.
+          </p>
+          
+          <div className="mt-10 flex justify-center">
+            <ConnectWalletButton />
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Multi-Chain Support</h3>
+            <p className="text-gray-600">Monitor your multisigs on Ethereum, Base, Polygon, and more.</p>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-              <div className="text-3xl mb-4">🔔</div>
-              <h3 className="text-xl font-semibold mb-2 text-blue-400">Real-time Notifications</h3>
-              <p className="text-gray-300">
-                Get instant Telegram alerts when your Safe has new transactions requiring signatures
-              </p>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
             </div>
-
-            <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-              <div className="text-3xl mb-4">⏰</div>
-              <h3 className="text-xl font-semibold mb-2 text-purple-400">Automated Monitoring</h3>
-              <p className="text-gray-300">
-                Runs on Vercel cron jobs, checking for new transactions every 5 minutes
-              </p>
-            </div>
-
-            <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-              <div className="text-3xl mb-4">💾</div>
-              <h3 className="text-xl font-semibold mb-2 text-green-400">Persistent Storage</h3>
-              <p className="text-gray-300">
-                Uses Vercel KV to track seen transactions and prevent duplicate notifications
-              </p>
-            </div>
-
-            <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-              <div className="text-3xl mb-4">🎛️</div>
-              <h3 className="text-xl font-semibold mb-2 text-pink-400">Web Dashboard</h3>
-              <p className="text-gray-300">
-                Monitor status, manually trigger checks, and test your configuration
-              </p>
-            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Instant Notifications</h3>
+            <p className="text-gray-600">Get Telegram alerts immediately when transactions need your approval.</p>
           </div>
 
-          {/* How It Works */}
-          <div className="bg-gray-800 rounded-lg p-8 shadow-xl mb-16">
-            <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              How It Works
-            </h2>
-            
-            <ol className="space-y-4">
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center font-bold mr-4">1</span>
-                <div>
-                  <h4 className="font-semibold mb-1">Monitor Safe</h4>
-                  <p className="text-gray-300">Vercel cron job polls the Safe Client API every 5 minutes for pending transactions</p>
-                </div>
-              </li>
-              
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center font-bold mr-4">2</span>
-                <div>
-                  <h4 className="font-semibold mb-1">Detect New Transactions</h4>
-                  <p className="text-gray-300">Identifies transactions that need signatures and haven't been seen before</p>
-                </div>
-              </li>
-              
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center font-bold mr-4">3</span>
-                <div>
-                  <h4 className="font-semibold mb-1">Send Notifications</h4>
-                  <p className="text-gray-300">Sends formatted message to your Telegram group with transaction details</p>
-                </div>
-              </li>
-              
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center font-bold mr-4">4</span>
-                <div>
-                  <h4 className="font-semibold mb-1">Sign Transaction</h4>
-                  <p className="text-gray-300">Click the link in the notification to sign directly in the Safe app</p>
-                </div>
-              </li>
-            </ol>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Secure & Private</h3>
+            <p className="text-gray-600">Sign in with your wallet. No passwords or personal data required.</p>
           </div>
+        </div>
 
-          {/* Supported Chains */}
-          <div className="bg-gray-800 rounded-lg p-8 shadow-xl">
-            <h2 className="text-2xl font-bold mb-4 text-center">Supported Chains</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-              <div className="bg-gray-700 p-3 rounded">
-                <div className="font-semibold">Ethereum</div>
-                <div className="text-sm text-gray-400">Chain ID: 1</div>
+        {/* How it works */}
+        <div className="mt-20">
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">How It Works</h2>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">1</span>
               </div>
-              <div className="bg-gray-700 p-3 rounded">
-                <div className="font-semibold">Base</div>
-                <div className="text-sm text-gray-400">Chain ID: 8453</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Connect Your Wallet</h3>
+              <p className="text-gray-600">Sign in with Ethereum using your preferred wallet.</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">2</span>
               </div>
-              <div className="bg-gray-700 p-3 rounded">
-                <div className="font-semibold">Polygon</div>
-                <div className="text-sm text-gray-400">Chain ID: 137</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Add Your Multisigs</h3>
+              <p className="text-gray-600">Configure the Safe addresses you want to monitor.</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">3</span>
               </div>
-              <div className="bg-gray-700 p-3 rounded">
-                <div className="font-semibold">Arbitrum</div>
-                <div className="text-sm text-gray-400">Chain ID: 42161</div>
-              </div>
-              <div className="bg-gray-700 p-3 rounded">
-                <div className="font-semibold">Optimism</div>
-                <div className="text-sm text-gray-400">Chain ID: 10</div>
-              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Get Notified</h3>
+              <p className="text-gray-600">Receive Telegram alerts for pending transactions.</p>
             </div>
           </div>
         </div>
