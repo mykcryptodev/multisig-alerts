@@ -17,7 +17,7 @@ export interface TransactionData {
  * @returns AI-generated description or null if failed
  */
 export async function generateTransactionDescription(tx: TransactionData): Promise<string | null> {
-  if (!config.thirdweb.clientId || !tx.data || tx.data === '0x') {
+  if (!config.thirdweb.secretKey || !tx.data || tx.data === '0x') {
     return null;
   }
 
@@ -28,13 +28,19 @@ export async function generateTransactionDescription(tx: TransactionData): Promi
     const valueInfo = tx.value && tx.value !== '0' ? ` Value: ${tx.value} ETH` : '';
     const methodInfo = tx.method ? ` Method: ${tx.method}` : '';
     
-    const aiResponse = await fetch('https://api.thirdweb.com/ai/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-secret-key': config.thirdweb.secretKey,
-      },
-      body: JSON.stringify({
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout
+    
+    try {
+      const aiResponse = await fetch('https://api.thirdweb.com/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-secret-key': config.thirdweb.secretKey,
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
         messages: [
           {
             role: 'user',
@@ -48,20 +54,32 @@ export async function generateTransactionDescription(tx: TransactionData): Promi
       })
     });
     
-    if (aiResponse.ok) {
-      const aiData = await aiResponse.json();
+      // Clear timeout on successful response
+      clearTimeout(timeoutId);
       
-      // Thirdweb AI API returns the response in the 'message' field
-      if (aiData.message) {
-        const aiDescription = formatAIResponseForTelegram(aiData.message.trim());
-        console.log('🤖 AI description generated successfully');
-        return aiDescription;
+      if (aiResponse.ok) {
+        const aiData = await aiResponse.json();
+        
+        // Thirdweb AI API returns the response in the 'message' field
+        if (aiData.message) {
+          const aiDescription = formatAIResponseForTelegram(aiData.message.trim());
+          console.log('🤖 AI description generated successfully');
+          return aiDescription;
+        } else {
+          console.warn('🤖 AI response missing expected structure:', aiData);
+        }
       } else {
-        console.warn('🤖 AI response missing expected structure:', aiData);
+        const errorText = await aiResponse.text();
+        console.warn('Thirdweb AI API request failed:', aiResponse.status, aiResponse.statusText, errorText);
       }
-    } else {
-      const errorText = await aiResponse.text();
-      console.warn('Thirdweb AI API request failed:', aiResponse.status, aiResponse.statusText, errorText);
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        console.warn('🤖 AI API request timed out after 8 seconds');
+      } else {
+        console.warn('🤖 AI API fetch error:', fetchError);
+      }
     }
   } catch (error) {
     console.warn('Failed to get AI description:', error);

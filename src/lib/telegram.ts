@@ -208,19 +208,26 @@ export class TelegramService {
       lines.push(`<b>Method:</b> <code>${tx.dataDecoded.method}</code>`);
     }
 
-    // Add AI description for all transactions
-    const aiDescription = await generateTransactionDescription({
-      data: tx.data || '',
-      to: destination,
-      value: valueEth,
-      chainId,
-      method: tx.dataDecoded?.method
-    });
-    
-    if (aiDescription) {
-      lines.push('');
-      lines.push(`<b>🤖 AI Description:</b>`);
-      lines.push(aiDescription);
+    // Add AI description for all transactions (with timeout protection)
+    try {
+      const aiDescription = await Promise.race([
+        generateTransactionDescription({
+          data: tx.data || '',
+          to: destination,
+          value: valueEth,
+          chainId,
+          method: tx.dataDecoded?.method
+        }),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 52000)) // 52 second fallback
+      ]);
+      
+      if (aiDescription) {
+        lines.push('');
+        lines.push(`<b>🤖 AI Description:</b>`);
+        lines.push(aiDescription);
+      }
+    } catch (error) {
+      console.warn('AI description failed, continuing without it:', error);
     }
 
     // Add Safe Web App link
