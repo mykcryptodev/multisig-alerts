@@ -22,9 +22,11 @@ if (!clientConfig.secretKey && !clientConfig.clientId) {
 
 export const client = createThirdwebClient(clientConfig);
 
+const domain = (process.env.NEXT_PUBLIC_APP_URL || "localhost:3000").replace(/^https?:\/\//, '');
+
 // Create auth instance (only for server-side usage)
 export const thirdwebAuth = process.env.THIRDWEB_SECRET_KEY ? createAuth({
-  domain: process.env.VERCEL_URL || "localhost:3000",
+  domain,
   client,
   // Use a backend wallet to sign login payloads
   adminAccount: privateKeyToAccount({ 
