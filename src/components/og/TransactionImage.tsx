@@ -46,7 +46,7 @@ export function TransactionImage({
         backgroundColor: '#0f172a',
         color: 'white',
         padding: '40px',
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'Segment, sans-serif',
       }}
     >
       {/* Header */}
@@ -325,7 +325,7 @@ function DetailRow({
       <div
         style={{
           display: 'flex',
-          fontFamily: isMonospace ? 'monospace' : 'inherit',
+          fontFamily: isMonospace ? 'Segment, monospace' : 'Segment',
           fontWeight: 'bold',
           color: valueColor,
         }}
@@ -501,7 +501,7 @@ function TransactionFooter({ chainName, safeTxHash }: { chainName: string; safeT
       <div
         style={{
           display: 'flex',
-          fontFamily: 'monospace',
+          fontFamily: 'Segment, monospace',
           fontSize: '14px',
         }}
       >
