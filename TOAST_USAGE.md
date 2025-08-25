@@ -4,10 +4,10 @@ This project uses a customized React Toastify implementation that integrates sea
 
 ## Features
 
-- ✅ **Native DaisyUI Styling**: Uses DaisyUI alert components for consistent design
+- ✅ **Native DaisyUI Styling**: Uses DaisyUI alert components with base background colors for consistent design
 - ✅ **Theme Awareness**: Automatically adapts to light/dark themes
-- ✅ **Custom Icons**: Tailored icons for each toast type
-- ✅ **Smooth Animations**: Custom slide-in/out animations
+- ✅ **Lucide React Icons**: Beautiful, consistent icons for each toast type using Lucide React library
+- ✅ **Smooth Animations**: Custom slide-in/out animations with enhanced shadows
 - ✅ **Progress Bar**: Shows countdown with primary color
 - ✅ **Interactive**: Click to dismiss, pause on hover, draggable
 - ✅ **Auto-close**: Configurable auto-close timing
@@ -83,10 +83,11 @@ showToast.warning('Custom styled toast', {
 
 | Type | Icon | DaisyUI Class | Use Case |
 |------|------|----------------|----------|
-| `success` | ✅ Checkmark | `alert alert-success` | Successful operations |
-| `error` | ❌ X mark | `alert alert-error` | Errors and failures |
-| `warning` | ⚠️ Warning | `alert alert-warning` | Warnings and cautions |
-| `info` | ℹ️ Info | `alert alert-info` | General information |
+| `success` | ✅ CheckCircle (Lucide) | `alert alert-success bg-base-200` | Successful operations |
+| `error` | ❌ XCircle (Lucide) | `alert alert-error bg-base-200` | Errors and failures |
+| `warning` | ⚠️ AlertTriangle (Lucide) | `alert alert-warning bg-base-200` | Warnings and cautions |
+| `info` | ℹ️ Info (Lucide) | `alert alert-info bg-base-200` | General information |
+| `pending` | 🔄 Loader2 (Lucide) | `alert alert-info bg-base-200` | Loading operations |
 
 ## Configuration
 

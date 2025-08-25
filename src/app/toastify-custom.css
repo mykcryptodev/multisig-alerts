@@ -9,10 +9,10 @@
 .Toastify__toast {
   background: transparent !important;
   color: inherit !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem !important;
+  margin: 0.25rem 0 !important;
   min-height: auto !important;
   font-family: inherit !important;
 }
@@ -66,11 +66,13 @@
 /* Dark theme specific overrides */
 [data-theme="dark"] .Toastify__toast {
   background: transparent !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3) !important;
 }
 
 /* Light theme specific overrides */
 [data-theme="light"] .Toastify__toast {
   background: transparent !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
 }
 
 /* Ensure toasts are above modals and other UI elements */

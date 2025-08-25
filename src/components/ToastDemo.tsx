@@ -90,10 +90,10 @@ export default function ToastDemo() {
       <div className="mt-8 p-4 bg-base-200 rounded-lg">
         <h3 className="text-lg font-semibold mb-2">Features:</h3>
         <ul className="list-disc list-inside space-y-1 text-sm">
-          <li>✅ Native DaisyUI styling with alert components</li>
+          <li>✅ Native DaisyUI styling with alert components and base backgrounds</li>
           <li>✅ Theme-aware (light/dark mode support)</li>
-          <li>✅ Custom icons for each toast type</li>
-          <li>✅ Smooth slide-in/out animations</li>
+          <li>✅ Beautiful Lucide React icons for each toast type</li>
+          <li>✅ Smooth slide-in/out animations with enhanced shadows</li>
           <li>✅ Progress bar with primary color</li>
           <li>✅ Click to dismiss</li>
           <li>✅ Auto-close after 5 seconds (configurable)</li>

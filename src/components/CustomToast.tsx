@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import '../app/toastify-custom.css';
 import { useTheme } from './providers/ThemeProvider';
 import { useEffect, useState } from 'react';
+import { CheckCircle, XCircle, AlertTriangle, Info, Loader2 } from 'lucide-react';
 
 // Custom toast component that matches DaisyUI design
 const CustomToast = ({ message, type, isLoading = false }: { message: string; type: string; isLoading?: boolean }) => {
@@ -12,38 +13,20 @@ const CustomToast = ({ message, type, isLoading = false }: { message: string; ty
     if (isLoading) {
       return (
         <div className="animate-spin">
-          <svg className="w-5 h-5 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2a10 10 0 100 20 10 10 0 000-20z" />
-          </svg>
+          <Loader2 className="w-5 h-5 text-info" />
         </div>
       );
     }
     
     switch (type) {
       case 'success':
-        return (
-          <svg className="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        );
+        return <CheckCircle className="w-5 h-5 text-success" />;
       case 'error':
-        return (
-          <svg className="w-5 h-5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        );
+        return <XCircle className="w-5 h-5 text-error" />;
       case 'warning':
-        return (
-          <svg className="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-        );
+        return <AlertTriangle className="w-5 h-5 text-warning" />;
       case 'info':
-        return (
-          <svg className="w-5 h-5 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        );
+        return <Info className="w-5 h-5 text-info" />;
       default:
         return null;
     }
@@ -51,20 +34,20 @@ const CustomToast = ({ message, type, isLoading = false }: { message: string; ty
 
   const getAlertClass = () => {
     if (isLoading) {
-      return 'alert alert-info border-l-4 border-l-info';
+      return 'alert alert-info bg-base-200 border-l-4 border-l-info';
     }
     
     switch (type) {
       case 'success':
-        return 'alert alert-success';
+        return 'alert alert-success bg-base-200';
       case 'error':
-        return 'alert alert-error';
+        return 'alert alert-error bg-base-200';
       case 'warning':
-        return 'alert alert-warning';
+        return 'alert alert-warning bg-base-200';
       case 'info':
-        return 'alert alert-info';
+        return 'alert alert-info bg-base-200';
       default:
-        return 'alert';
+        return 'alert bg-base-200';
     }
   };
 
@@ -99,7 +82,7 @@ export const CustomToastContainer = () => {
       draggable
       pauseOnHover
       theme={theme}
-      toastClassName="!p-6 !bg-base-100 !shadow-none"
+      toastClassName="!p-2 !bg-transparent !shadow-lg !rounded-lg"
       closeButton={false}
     />
   );
@@ -110,31 +93,31 @@ export const showToast = {
   success: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="success" />, {
       ...options,
-      className: '!p-6 !bg-base-100 !shadow-none',
+      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
     });
   },
   error: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="error" />, {
       ...options,
-      className: '!p-6 !bg-base-100 !shadow-none',
+      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
     });
   },
   warning: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="warning" />, {
       ...options,
-      className: '!p-6 !bg-base-100 !shadow-none',
+      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
     });
   },
   info: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="info" />, {
       ...options,
-      className: '!p-6 !bg-base-100 !shadow-none',
+      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
     });
   },
   pending: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="info" isLoading={true} />, {
       ...options,
-      className: '!p-6 !bg-base-100 !shadow-none',
+      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
       autoClose: false,
     });
   },

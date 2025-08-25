@@ -15,12 +15,12 @@
     "db:production": "npm run db:use-postgres"
   },
   "dependencies": {
-    "@hugeicons/react": "^1.0.5",
     "@prisma/client": "^6.14.0",
     "@safe-global/api-kit": "^4.0.0",
     "@safe-global/safe-core-sdk-types": "^5.1.0",
     "@upstash/redis": "^1.35.3",
     "@vercel/og": "^0.8.5",
+    "lucide-react": "^0.541.0",
     "next": "15.5.0",
     "prisma": "^6.14.0",
     "react": "19.1.0",
