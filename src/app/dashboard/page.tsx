@@ -48,13 +48,7 @@ export default function DashboardPage() {
   // Load user data
   useEffect(() => {
     if (user) {
-      // Show loading toast for initial data load
-      const loadingToast = showToast.pending('Loading your data...');
-      
-      loadUserData().finally(() => {
-        // Close loading toast when done
-        toast.dismiss(loadingToast);
-      });
+      loadUserData();
     }
   }, [user]);
 
@@ -282,7 +276,7 @@ export default function DashboardPage() {
         const result = await response.json();
         // Close pending toast and show success
         toast.dismiss(pendingToast);
-        showToast.success(`✅ ${result.message}`);
+        showToast.success(`${result.message}`);
       } else {
         const error = await response.json();
         // Close pending toast and show error

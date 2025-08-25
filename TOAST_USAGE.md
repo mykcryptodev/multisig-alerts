@@ -8,7 +8,7 @@ This project uses a customized React Toastify implementation that integrates sea
 - ✅ **Theme Awareness**: Automatically adapts to light/dark themes
 - ✅ **Lucide React Icons**: Beautiful, consistent icons for each toast type using Lucide React library
 - ✅ **Smooth Animations**: Custom slide-in/out animations with enhanced shadows
-- ✅ **Progress Bar**: Shows countdown with primary color
+- ✅ **Consistent Borders**: Clean colored borders that match toast type for visual hierarchy
 - ✅ **Interactive**: Click to dismiss, pause on hover, draggable
 - ✅ **Auto-close**: Configurable auto-close timing
 
@@ -95,8 +95,9 @@ The toast system is configured in `src/components/CustomToast.tsx` with the foll
 
 - **Position**: Top-right corner
 - **Auto-close**: 5 seconds
-- **Progress bar**: Enabled
+- **Progress bar**: Hidden for clean appearance
 - **Close button**: Hidden (click to dismiss)
+- **Borders**: Consistent colored borders matching toast type
 - **Theme**: Automatically follows app theme
 - **Animations**: Slide from right with fade
 

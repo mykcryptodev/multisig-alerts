@@ -33,28 +33,30 @@ const CustomToast = ({ message, type, isLoading = false }: { message: string; ty
   };
 
   const getAlertClass = () => {
+    const baseClass = 'alert bg-base-200 border-2 !border-solid';
+    
     if (isLoading) {
-      return 'alert alert-info bg-base-200 border-l-4 border-l-info';
+      return `${baseClass} border-info`;
     }
     
     switch (type) {
       case 'success':
-        return 'alert alert-success bg-base-200';
+        return `${baseClass} border-success`;
       case 'error':
-        return 'alert alert-error bg-base-200';
+        return `${baseClass} border-error`;
       case 'warning':
-        return 'alert alert-warning bg-base-200';
+        return `${baseClass} border-warning`;
       case 'info':
-        return 'alert alert-info bg-base-200';
+        return `${baseClass} border-info`;
       default:
-        return 'alert bg-base-200';
+        return `${baseClass} border-base-300`;
     }
   };
 
   return (
     <div className={getAlertClass()}>
       {getIcon()}
-      <span className="font-medium">{message}</span>
+      <span className="font-medium text-base-content">{message}</span>
     </div>
   );
 };
@@ -74,7 +76,7 @@ export const CustomToastContainer = () => {
     <ToastContainer
       position="top-right"
       autoClose={5000}
-      hideProgressBar={false}
+      hideProgressBar={true}
       newestOnTop={false}
       closeOnClick
       rtl={false}

@@ -24,10 +24,9 @@
   background: transparent !important;
 }
 
-/* Override progress bar */
+/* Override progress bar - completely hidden */
 .Toastify__progress-bar {
-  background: hsl(var(--p)) !important;
-  height: 2px !important;
+  display: none !important;
 }
 
 /* Override close button */

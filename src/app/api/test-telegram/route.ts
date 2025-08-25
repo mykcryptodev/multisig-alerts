@@ -66,7 +66,7 @@ export async function POST() {
       if (imageSent) {
         return NextResponse.json({
           success: true,
-          message: '✅ Telegram test successful! Both text message and OG image sent.',
+          message: 'Telegram test successful! Both text message and OG image sent.',
           tests: {
             textMessage: 'Passed',
             ogImage: 'Passed',

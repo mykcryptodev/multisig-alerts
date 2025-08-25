@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       if (imageSent) {
         return NextResponse.json({
           success: true,
-          message: `✅ ${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} transaction test successful! Both text message and OG image sent.`,
+          message: `${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} transaction test successful! Both text message and OG image sent.`,
           tests: {
             textMessage: 'Passed',
             ogImage: 'Passed',
