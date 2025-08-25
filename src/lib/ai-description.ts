@@ -30,7 +30,8 @@ export async function generateTransactionDescription(tx: TransactionData): Promi
     
     // Create AbortController for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout
+    const timeout = 55000; // 55 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     try {
       const aiResponse = await fetch('https://api.thirdweb.com/ai/chat', {
@@ -76,7 +77,7 @@ export async function generateTransactionDescription(tx: TransactionData): Promi
       clearTimeout(timeoutId);
       
       if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-        console.warn('🤖 AI API request timed out after 8 seconds');
+        console.warn(`🤖 AI API request timed out after ${timeout / 1000} seconds`);
       } else {
         console.warn('🤖 AI API fetch error:', fetchError);
       }

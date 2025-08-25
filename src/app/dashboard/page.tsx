@@ -6,6 +6,9 @@ import { ConnectButton } from 'thirdweb/react';
 import { client } from '@/lib/thirdweb-auth';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import ToastDemo from '@/components/ToastDemo';
+import { showToast } from '@/components/CustomToast';
+import { toast } from 'react-toastify';
 
 interface Multisig {
   id: string;
@@ -45,7 +48,13 @@ export default function DashboardPage() {
   // Load user data
   useEffect(() => {
     if (user) {
-      loadUserData();
+      // Show loading toast for initial data load
+      const loadingToast = showToast.pending('Loading your data...');
+      
+      loadUserData().finally(() => {
+        // Close loading toast when done
+        toast.dismiss(loadingToast);
+      });
     }
   }, [user]);
 
@@ -68,6 +77,7 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Error loading user data:', error);
+      showToast.error('Failed to load user data');
     } finally {
       setIsLoadingData(false);
     }
@@ -75,6 +85,9 @@ export default function DashboardPage() {
 
   const handleAddMultisig = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Show pending toast
+    const pendingToast = showToast.pending('Adding multisig...');
     
     try {
       const response = await fetch('/api/multisigs', {
@@ -87,17 +100,27 @@ export default function DashboardPage() {
         setShowAddMultisig(false);
         setNewMultisig({ chainId: 8453, address: '', name: '' });
         loadUserData();
+        // Close pending toast and show success
+        toast.dismiss(pendingToast);
+        showToast.success('Multisig added successfully!');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error}`);
+        // Close pending toast and show error
+        toast.dismiss(pendingToast);
+        showToast.error(`Error: ${error.error}`);
       }
     } catch (error) {
       console.error('Error adding multisig:', error);
-      alert('Failed to add multisig');
+      // Close pending toast and show error
+      toast.dismiss(pendingToast);
+      showToast.error('Failed to add multisig');
     }
   };
 
   const handleUpdateMultisig = async (id: string, updates: Partial<Multisig>) => {
+    // Show pending toast
+    const pendingToast = showToast.pending('Updating multisig...');
+    
     try {
       const response = await fetch(`/api/multisigs/${id}`, {
         method: 'PATCH',
@@ -107,18 +130,28 @@ export default function DashboardPage() {
       
       if (response.ok) {
         loadUserData();
+        // Close pending toast and show success
+        toast.dismiss(pendingToast);
+        showToast.success('Multisig updated successfully!');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error}`);
+        // Close pending toast and show error
+        toast.dismiss(pendingToast);
+        showToast.error(`Error: ${error.error}`);
       }
     } catch (error) {
       console.error('Error updating multisig:', error);
-      alert('Failed to update multisig');
+      // Close pending toast and show error
+      toast.dismiss(pendingToast);
+      showToast.error('Failed to update multisig');
     }
   };
 
   const handleDeleteMultisig = async (id: string) => {
     if (!confirm('Are you sure you want to delete this multisig?')) return;
+    
+    // Show pending toast
+    const pendingToast = showToast.pending('Deleting multisig...');
     
     try {
       const response = await fetch(`/api/multisigs/${id}`, {
@@ -127,18 +160,28 @@ export default function DashboardPage() {
       
       if (response.ok) {
         loadUserData();
+        // Close pending toast and show success
+        toast.dismiss(pendingToast);
+        showToast.success('Multisig deleted successfully!');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error}`);
+        // Close pending toast and show error
+        toast.dismiss(pendingToast);
+        showToast.error(`Error: ${error.error}`);
       }
     } catch (error) {
       console.error('Error deleting multisig:', error);
-      alert('Failed to delete multisig');
+      // Close pending toast and show error
+      toast.dismiss(pendingToast);
+      showToast.error('Failed to delete multisig');
     }
   };
 
   const handleUpdateNotifications = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Show pending toast
+    const pendingToast = showToast.pending('Updating notification settings...');
     
     try {
       const response = await fetch('/api/notifications', {
@@ -151,17 +194,27 @@ export default function DashboardPage() {
         setShowTelegramConfig(false);
         setTelegramConfig({ telegramBotToken: '', telegramChatId: '' });
         loadUserData();
+        // Close pending toast and show success
+        toast.dismiss(pendingToast);
+        showToast.success('Notification settings updated successfully!');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error}`);
+        // Close pending toast and show error
+        toast.dismiss(pendingToast);
+        showToast.error(`Error: ${error.error}`);
       }
     } catch (error) {
       console.error('Error updating notifications:', error);
-      alert('Failed to update notification settings');
+      // Close pending toast and show error
+      toast.dismiss(pendingToast);
+      showToast.error('Failed to update notification settings');
     }
   };
 
   const handleTestTelegram = async () => {
+    // Show pending toast
+    const pendingToast = showToast.pending('Testing Telegram notification...');
+    
     try {
       const response = await fetch('/api/notifications', {
         method: 'POST',
@@ -170,36 +223,54 @@ export default function DashboardPage() {
       });
       
       if (response.ok) {
-        alert('Test message sent successfully!');
+        // Close pending toast and show success
+        toast.dismiss(pendingToast);
+        showToast.success('Test message sent successfully!');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error}`);
+        // Close pending toast and show error
+        toast.dismiss(pendingToast);
+        showToast.error(`Error: ${error.error}`);
       }
     } catch (error) {
       console.error('Error testing Telegram:', error);
-      alert('Failed to send test message');
+      // Close pending toast and show error
+      toast.dismiss(pendingToast);
+      showToast.error('Failed to send test message');
     }
   };
 
   const handleManualCheck = async () => {
+    // Show pending toast
+    const pendingToast = showToast.pending('Performing manual check...');
+    
     try {
       const response = await fetch('/api/cron/check-safe', {
         method: 'POST',
       });
       
       if (response.ok) {
-        alert('Manual check completed!');
+        // Close pending toast and show success
+        toast.dismiss(pendingToast);
+        showToast.success('Manual check completed!');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error}`);
+        // Close pending toast and show error
+        toast.dismiss(pendingToast);
+        showToast.error(`Error: ${error.error}`);
       }
     } catch (error) {
       console.error('Error with manual check:', error);
-      alert('Failed to perform manual check');
+      // Close pending toast and show error
+      toast.dismiss(pendingToast);
+      showToast.error('Failed to perform manual check');
     }
   };
 
   const handleTestTransactionType = async (transactionType: 'transfer' | 'approval' | 'contract') => {
+    // Show pending toast
+    const pendingToast = showToast.pending(`Testing ${transactionType} transaction...`);
+    
     try {
       const response = await fetch('/api/test-transaction-type', {
         method: 'POST',
@@ -209,14 +280,20 @@ export default function DashboardPage() {
       
       if (response.ok) {
         const result = await response.json();
-        alert(`✅ ${result.message}`);
+        // Close pending toast and show success
+        toast.dismiss(pendingToast);
+        showToast.success(`✅ ${result.message}`);
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error || error.message}`);
+        // Close pending toast and show error
+        toast.dismiss(pendingToast);
+        showToast.error(`Error: ${error.error || error.message}`);
       }
     } catch (error) {
       console.error(`Error testing ${transactionType} transaction:`, error);
-      alert(`Failed to test ${transactionType} transaction`);
+      // Close pending toast and show error
+      toast.dismiss(pendingToast);
+      showToast.error(`Failed to test ${transactionType} transaction`);
     }
   };
 
@@ -330,6 +407,13 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Toast Demo Section */}
+        <div className="card bg-base-200 shadow-xl mb-8">
+          <div className="card-body">
+            <ToastDemo />
+          </div>
+        </div>
+
         {/* Multisigs Section */}
         <div className="card bg-base-200 shadow-xl mb-8">
           <div className="card-body">
@@ -410,12 +494,34 @@ export default function DashboardPage() {
                     <input
                       type="checkbox"
                       checked={notificationSettings.enabled}
-                      onChange={(e) => {
-                        fetch('/api/notifications', {
-                          method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ enabled: e.target.checked }),
-                        }).then(() => loadUserData());
+                      onChange={async (e) => {
+                        // Show pending toast
+                        const pendingToast = showToast.pending('Updating notification status...');
+                        
+                        try {
+                          const response = await fetch('/api/notifications', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ enabled: e.target.checked }),
+                          });
+                          
+                          if (response.ok) {
+                            await loadUserData();
+                            // Close pending toast and show success
+                            toast.dismiss(pendingToast);
+                            showToast.success(`Notifications ${e.target.checked ? 'enabled' : 'disabled'} successfully!`);
+                          } else {
+                            const error = await response.json();
+                            // Close pending toast and show error
+                            toast.dismiss(pendingToast);
+                            showToast.error(`Error: ${error.error}`);
+                          }
+                        } catch (error) {
+                          console.error('Error updating notification status:', error);
+                          // Close pending toast and show error
+                          toast.dismiss(pendingToast);
+                          showToast.error('Failed to update notification status');
+                        }
                       }}
                       className="checkbox checkbox-primary"
                     />

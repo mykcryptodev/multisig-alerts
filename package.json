@@ -15,6 +15,7 @@
     "db:production": "npm run db:use-postgres"
   },
   "dependencies": {
+    "@hugeicons/react": "^1.0.5",
     "@prisma/client": "^6.14.0",
     "@safe-global/api-kit": "^4.0.0",
     "@safe-global/safe-core-sdk-types": "^5.1.0",
@@ -24,6 +25,7 @@
     "prisma": "^6.14.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-toastify": "^11.0.5",
     "thirdweb": "^5.105.37"
   },
   "devDependencies": {
@@ -33,6 +35,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-toastify": "^4.0.2",
     "daisyui": "^5.0.50",
     "eslint": "^9",
     "eslint-config-next": "^15.5.0",

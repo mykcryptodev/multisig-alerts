@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { CustomToastContainer } from "@/components/CustomToast";
 import "./globals.css";
 
 const segment = localFont({
@@ -39,6 +40,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             {children}
+            <CustomToastContainer />
           </AuthProvider>
         </ThemeProvider>
       </body>
