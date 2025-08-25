@@ -128,7 +128,9 @@ async function checkMultisig(
               const sent = await telegramService.notifyNewTransaction(
                 telegramTx,
                 confirmations,
-                threshold
+                threshold,
+                multisig.address,
+                multisig.chainId.toString()
               );
               
               console.log('📱 Notification result:', { sent, safeTxHash: tx.safeTxHash });

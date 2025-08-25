@@ -45,7 +45,7 @@ export async function generateTransactionDescription(tx: TransactionData): Promi
         messages: [
           {
             role: 'user',
-            content: `Provide a clear 1-3 sentence explanation of what this blockchain transaction does. Be specific about the action being performed and any tokens or contracts involved. Transaction data: ${tx.data}, Contract: ${tx.to}, Chain: ${tx.chainId}${valueInfo}${methodInfo}`
+            content: `Provide a clear 1-3 sentence explanation of what this blockchain transaction does. Be specific about the action being performed and any tokens or contracts involved. Do not ask follow up questions. Time is of the essence so please be quick to respond. Transaction data: ${tx.data}, Contract: ${tx.to}, Chain: ${tx.chainId}${valueInfo}${methodInfo}`
           }
         ],
         context: {

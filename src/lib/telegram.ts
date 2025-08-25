@@ -187,10 +187,10 @@ export class TelegramService {
   async formatTransactionMessage(
     tx: SafeTransaction, // Safe API transaction type
     confirmations: number,
-    threshold: number
+    threshold: number,
+    safeAddress: string,
+    chainId: string
   ): Promise<string> {
-    const chainId = config.safe.chainId;
-    const safeAddress = config.safe.address;
     const chain = getChainConfig(chainId);
     
     const destination = tx.to || tx.receiver || 'unknown';
@@ -258,17 +258,19 @@ export class TelegramService {
   async notifyNewTransaction(
     tx: SafeTransaction, // Safe API transaction type
     confirmations: number,
-    threshold: number
+    threshold: number,
+    safeAddress: string,
+    chainId: string
   ): Promise<boolean> {
     try {
       console.log('🔍 Attempting to generate OG image for transaction:', tx.safeTxHash);
       
       // First, try to send the OG image
-      const ogImageUrl = await this.generateOGImageUrl(tx, confirmations, threshold);
+      const ogImageUrl = await this.generateOGImageUrl(tx, confirmations, threshold, safeAddress, chainId);
       
       if (ogImageUrl) {
         console.log('✅ OG image URL generated:', ogImageUrl);
-        const caption = await this.formatTransactionMessage(tx, confirmations, threshold);
+        const caption = await this.formatTransactionMessage(tx, confirmations, threshold, safeAddress, chainId);
         console.log('📝 Sending photo with caption...');
         const photoSent = await this.sendPhoto(ogImageUrl, caption);
         
@@ -284,14 +286,14 @@ export class TelegramService {
       
       // Fallback to text-only message if image fails
       console.log('📝 Sending text-only message...');
-      const message = await this.formatTransactionMessage(tx, confirmations, threshold);
+      const message = await this.formatTransactionMessage(tx, confirmations, threshold, safeAddress, chainId);
       return await this.sendMessage(message);
     } catch (error) {
       console.error('❌ Failed to send transaction notification:', error);
       
       // Final fallback to text-only message
       console.log('📝 Final fallback to text-only message...');
-      const message = await this.formatTransactionMessage(tx, confirmations, threshold);
+      const message = await this.formatTransactionMessage(tx, confirmations, threshold, safeAddress, chainId);
       return await this.sendMessage(message);
     }
   }
@@ -299,7 +301,9 @@ export class TelegramService {
   private async generateOGImageUrl(
     tx: SafeTransaction,
     confirmations: number,
-    threshold: number
+    threshold: number,
+    safeAddress: string,
+    chainId: string
   ): Promise<string | null> {
     try {
       console.log('🔍 generateOGImageUrl called with:', {
@@ -307,13 +311,11 @@ export class TelegramService {
         to: tx.to,
         value: tx.value,
         nonce: tx.nonce,
-        method: tx.dataDecoded?.method
+        method: tx.dataDecoded?.method,
+        safeAddress,
+        chainId,
+        txConfirmations: tx.confirmations?.map(c => c.owner) || []
       });
-      
-      const chainId = config.safe.chainId;
-      const safeAddress = config.safe.address;
-      
-      console.log('🔍 Config values:', { chainId, safeAddress });
       
       // Validate required transaction data
       if (!tx.safeTxHash) {
@@ -325,7 +327,8 @@ export class TelegramService {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
       console.log('🔍 Using base URL:', baseUrl);
       
-      const safeInfoUrl = `${baseUrl}/api/safe-info`;
+      // Use the specific Safe address and chain ID passed as parameters
+      const safeInfoUrl = `${baseUrl}/api/safe-info?address=${safeAddress}&chainId=${chainId}`;
       console.log('🔍 Fetching Safe info from:', safeInfoUrl);
       
       const safeInfoResponse = await fetch(safeInfoUrl);
@@ -343,11 +346,13 @@ export class TelegramService {
         return null;
       }
 
-      console.log('🔍 Found owners:', safeInfo.data.owners);
+      console.log('🔍 Found owners from Safe API:', safeInfo.data.owners);
+      console.log('🔍 Expected Safe address:', safeAddress);
+      console.log('🔍 Actual Safe address returned:', safeInfo.data.address);
 
       // Extract confirmed signers from transaction confirmations
       const confirmedSigners = tx.confirmations?.map((conf: { owner: string }) => conf.owner) || [];
-      console.log('🔍 Confirmed signers:', confirmedSigners);
+      console.log('🔍 Confirmed signers from transaction:', confirmedSigners);
 
       // Build query parameters for OG image
       const params = new URLSearchParams({
@@ -379,8 +384,7 @@ export class TelegramService {
     const message = [
       '<b>✅ Safe Monitor Connected</b>',
       '',
-      `Monitoring Safe: <code>${config.safe.address}</code>`,
-      `Chain: ${getChainConfig(config.safe.chainId).name}`,
+      'Monitoring your configured multisigs',
       '',
       'You will receive notifications when new transactions need signatures.',
     ].join('\n');

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       const testTx = createTestTransaction(transactionType);
       
       // Test the enhanced notification with OG image
-      const imageSent = await telegram.notifyNewTransaction(testTx, 1, 2);
+      const imageSent = await telegram.notifyNewTransaction(testTx, 1, 2, '0x10f76316eB9f132a72E62481018F00cfEe326E15', '8453');
       
       if (imageSent) {
         return NextResponse.json({

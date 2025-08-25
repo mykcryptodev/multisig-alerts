@@ -1,27 +1,20 @@
 // Simple Safe API service using the official Safe API Kit SDK directly
 
 import SafeApiKit from '@safe-global/api-kit';
-import { config } from '@/config/env';
-import { getStorage } from './storage';
-import { getTelegram } from './telegram';
 
 // Lazy initialization to avoid build-time errors
 let safeApi: SafeApiKit | null = null;
 
 function getSafeApi(): SafeApiKit {
   if (!safeApi) {
-    if (!config.safe.address) {
-      throw new Error('SAFE_ADDRESS environment variable is required');
-    }
-    
     // SafeApiKit requires an API key for production use
     // You can get one at https://developer.safe.global
     const configOptions: { chainId: bigint; apiKey?: string } = {
-      chainId: BigInt(config.safe.chainId),
+      chainId: BigInt(8453), // Default to Base, but this function is not used for multi-tenant
     };
     
-    if (config.safe.apiKey) {
-      configOptions.apiKey = config.safe.apiKey;
+    if (process.env.SAFE_API_KEY) {
+      configOptions.apiKey = process.env.SAFE_API_KEY;
     }
     
     safeApi = new SafeApiKit(configOptions);
@@ -29,96 +22,33 @@ function getSafeApi(): SafeApiKit {
   return safeApi;
 }
 
-export async function checkForNewTransactions() {
-  if (!config.safe.address) {
-    throw new Error('SAFE_ADDRESS environment variable is required');
+export async function getSafeInfo(address: string, chainId: number) {
+  if (!address) {
+    throw new Error('Address parameter is required');
   }
-
-  try {
-    // Get pending transactions directly from Safe Transaction Service
-    const pendingTxs = await getSafeApi().getPendingTransactions(config.safe.address);
-    
-    console.log(`Found ${pendingTxs.results.length} pending transactions`);
-    
-    let newTransactions = 0;
-    let notificationsSent = 0;
-    const errors: string[] = [];
-
-    for (const tx of pendingTxs.results) {
-      if (!tx.safeTxHash) continue;
-
-      const confirmations = tx.confirmations?.length ?? 0;
-      const threshold = tx.confirmationsRequired ?? 0;
-      const needsSigs = confirmations < threshold;
-
-      if (needsSigs) {
-        // Check if we've seen this transaction
-        const storage = getStorage();
-        const seenTx = await storage.getSeenTransaction(tx.safeTxHash);
-        
-        if (!seenTx) {
-          newTransactions++;
-          
-          // Save to storage
-          await storage.setSeenTransaction({
-            safeTxHash: tx.safeTxHash,
-            firstSeen: new Date().toISOString(),
-            lastChecked: new Date().toISOString(),
-            confirmations,
-            threshold,
-          });
-          
-          // Send notification with OG image
-          try {
-            const telegram = getTelegram();
-            
-            // Convert Safe API transaction to the format expected by telegram service
-            const telegramTx = {
-              safeTxHash: tx.safeTxHash,
-              to: tx.to,
-              receiver: tx.to, // Use 'to' as receiver
-              value: tx.value,
-              dataDecoded: tx.dataDecoded,
-              operation: tx.operation,
-              nonce: tx.nonce ? Number(tx.nonce) : undefined,
-              detailedExecutionInfo: { nonce: tx.nonce ? Number(tx.nonce) : undefined },
-              data: tx.data,
-              confirmations: tx.confirmations,
-            };
-            
-            const sent = await telegram.notifyNewTransaction(telegramTx, confirmations, threshold);
-            
-            if (sent) {
-              notificationsSent++;
-              console.log(`Notification sent for ${tx.safeTxHash}`);
-            } else {
-              errors.push(`Failed to send notification for ${tx.safeTxHash}`);
-            }
-          } catch (error) {
-            errors.push(`Error sending notification for ${tx.safeTxHash}: ${error}`);
-          }
-        } else {
-          // Update confirmation count
-          await storage.updateSeenTransaction(tx.safeTxHash, {
-            confirmations,
-            lastChecked: new Date().toISOString(),
-          });
-        }
-      }
-    }
-
-    return { newTransactions, notificationsSent, errors };
-  } catch (error) {
-    console.error('Failed to check transactions:', error);
-    throw error;
+  
+  console.log('🔍 getSafeInfo called with:', { address, chainId });
+  
+  // Create a new SafeApiKit instance for the specific chain
+  const configOptions: { chainId: bigint; apiKey?: string } = {
+    chainId: BigInt(chainId),
+  };
+  
+  if (process.env.SAFE_API_KEY) {
+    configOptions.apiKey = process.env.SAFE_API_KEY;
   }
-}
-
-export async function getSafeInfo() {
-  if (!config.safe.address) {
-    throw new Error('SAFE_ADDRESS environment variable is required');
-  }
-  return await getSafeApi().getSafeInfo(config.safe.address);
+  
+  const safeApi = new SafeApiKit(configOptions);
+  console.log('🔍 SafeApiKit instance created for chainId:', chainId);
+  
+  const result = await safeApi.getSafeInfo(address);
+  console.log('🔍 SafeApiKit.getSafeInfo returned:', { 
+    requestedAddress: address, 
+    returnedAddress: result.address,
+    addressMatch: result.address.toLowerCase() === address.toLowerCase()
+  });
+  
+  return result;
 }
 
 // Export the getter function for direct use if needed
