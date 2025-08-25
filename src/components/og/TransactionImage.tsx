@@ -407,6 +407,7 @@ function SignerCard({ profile }: { profile: ProfileInfo }) {
             justifyContent: 'center',
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={profile.avatar}
             alt={profile.name}

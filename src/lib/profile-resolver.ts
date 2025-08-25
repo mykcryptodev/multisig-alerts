@@ -104,7 +104,7 @@ export async function resolveMultipleProfiles(
 
   // Step 3: Clean up temporary needsZapper property
   return profiles.map((profile) => {
-    const { needsZapper, ...cleanProfile } = profile;
+    const { needsZapper: _needsZapper, ...cleanProfile } = profile;
     return cleanProfile;
   });
 }

@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST endpoint for manual triggering from dashboard
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // For POST requests (manual triggers), we don't require cron authentication
     // since these come from the dashboard UI

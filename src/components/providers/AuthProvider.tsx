@@ -11,7 +11,7 @@ interface User {
   walletAddress: string;
   name?: string | null;
   multisigs: Multisig[];
-  notifications: NotificationSetting[];
+  notifications: NotificationSetting | null;
 }
 
 interface Multisig {

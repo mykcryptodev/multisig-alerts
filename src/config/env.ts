@@ -1,7 +1,7 @@
 // Environment configuration with type safety
 // Using Thirdweb SDK utilities for blockchain operations
 
-import { toTokens, toWei, shortenAddress } from 'thirdweb/utils';
+import { toTokens, toWei, shortenAddress, toUnits } from 'thirdweb/utils';
 import { defineChain } from 'thirdweb/chains';
 
 export const config = {
@@ -122,7 +122,7 @@ export function formatWeiValue(valueEth: string, decimals: number = 18): string 
   if (!valueEth || valueEth === '0') return '0';
   
   try {
-    return toWei(valueEth).toString();
+    return toUnits(valueEth, decimals).toString();
   } catch {
     return '0';
   }

@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const notificationSettings = user.notifications[0];
+    const notificationSettings = user.notifications;
     if (!notificationSettings || !notificationSettings.telegramBotToken || !notificationSettings.telegramChatId) {
       return NextResponse.json(
         { error: 'Telegram bot token and chat ID must be configured first' },

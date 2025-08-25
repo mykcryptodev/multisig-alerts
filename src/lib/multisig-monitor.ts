@@ -213,7 +213,7 @@ export async function checkAllMultisigs(): Promise<{
 
     // Check each multisig
     for (const multisig of multisigs) {
-      const notificationSettings = multisig.user.notifications[0] || null;
+      const notificationSettings = multisig.user.notifications;
       const apiKey = process.env.SAFE_API_KEY; // Use global API key for now
       
       const result = await checkMultisig(multisig, notificationSettings, apiKey);

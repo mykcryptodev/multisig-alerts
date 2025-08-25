@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { config, getChainConfig } from '@/config/env';
+import { config } from '@/config/env';
 
 export async function GET() {
   try {
