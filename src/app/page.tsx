@@ -2,11 +2,9 @@
 
 import { useAuth } from '@/components/providers/AuthProvider';
 import { ConnectWalletButton } from '@/components/providers/AuthProvider';
-import ThemeToggle from '@/components/ThemeToggle';
+import Header from '@/components/Header';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { Megaphone03Icon, MoneySafeIcon, WalletDone01Icon } from '@hugeicons/core-free-icons'
 
 export default function HomePage() {
   const { user, isLoading } = useAuth();
@@ -31,25 +29,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen siggy-gradient-soft">
-      {/* Header */}
-      <header className="bg-base-200/80 backdrop-blur-sm shadow-lg border-b-4 border-gradient">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-1 sm:gap-4">
-              <img 
-                src="/images/siggy.png" 
-                alt="Siggy the Parrot" 
-                className="w-12 h-12 hover-wiggle cursor-pointer"
-              />
-              <h1 className="text-4xl font-bold siggy-text-gradient-outlined title-medium">Siggy</h1>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-4">
-              <ThemeToggle />
-              <ConnectWalletButton />
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header variant="homepage" />
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">

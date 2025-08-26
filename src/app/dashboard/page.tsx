@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { ConnectButton } from 'thirdweb/react';
-import { client } from '@/lib/thirdweb-auth';
-import ThemeToggle from '@/components/ThemeToggle';
-import { useTheme } from '@/components/providers/ThemeProvider';
+import Header from '@/components/Header';
 import ToastDemo from '@/components/ToastDemo';
 import { showToast } from '@/components/CustomToast';
 import { toast } from 'react-toastify';
@@ -26,7 +23,6 @@ interface NotificationSetting {
 }
 
 export default function DashboardPage() {
-  const { theme } = useTheme();
   const { user, isLoading, signOut } = useAuth();
   const [multisigs, setMultisigs] = useState<Multisig[]>([]);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSetting | null>(null);
@@ -315,34 +311,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen siggy-gradient-soft">
-      {/* Header */}
-      <header className="bg-base-200/80 backdrop-blur-sm shadow-lg border-b-4 border-gradient">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-4">
-              <img 
-                src="/images/siggy.png" 
-                alt="Siggy the Parrot" 
-                className="w-12 h-12 hover-wiggle cursor-pointer"
-              />
-              <h1 className="text-2xl font-bold siggy-text-gradient-outlined title-medium">Siggy Dashboard 🦜</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <ConnectButton theme={theme === 'dark' ? 'dark' : 'light'} client={client} />
-              <button
-                onClick={signOut}
-                className="btn btn-ghost btn-circle hover-wiggle"
-                title="Sign Out"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header variant="dashboard" onSignOut={signOut} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Message */}
