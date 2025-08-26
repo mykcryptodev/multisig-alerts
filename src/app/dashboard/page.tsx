@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import Header from '@/components/Header';
-import ToastDemo from '@/components/ToastDemo';
+
 import { showToast } from '@/components/CustomToast';
 import { toast } from 'react-toastify';
 
@@ -400,15 +400,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Toast Demo Section */}
-        <div className="card-siggy hover-bounce mb-8">
-          <div className="card-siggy-inner">
-            <div className="card-body">
-              <h3 className="text-xl font-bold siggy-text-gradient-outlined mb-4">🎨 Toast Demo</h3>
-              <ToastDemo />
-            </div>
-          </div>
-        </div>
+
 
         {/* Multisigs Section */}
         <div className="card-siggy hover-bounce mb-8">

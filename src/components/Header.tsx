@@ -5,6 +5,8 @@ import { ConnectWalletButton } from '@/components/providers/AuthProvider';
 import ThemeToggle from '@/components/ThemeToggle';
 import { client } from '@/lib/thirdweb-auth';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface HeaderProps {
   variant?: 'homepage' | 'dashboard';
@@ -13,22 +15,43 @@ interface HeaderProps {
 
 export default function Header({ variant = 'homepage', onSignOut }: HeaderProps) {
   const { theme } = useTheme();
+  const pathname = usePathname();
 
   return (
     <header className="bg-base-200/80 backdrop-blur-sm shadow-lg border-b-4 border-gradient">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center gap-1 sm:gap-4">
-            <img 
-              src="/images/siggy.png" 
-              alt="Siggy the Parrot" 
-              className="w-12 h-12 hover-wiggle cursor-pointer"
-            />
-            <h1 className={`font-bold siggy-text-gradient-outlined title-medium text-4xl`}>
-              Siggy
-            </h1>
+            <Link href="/" className="flex items-center gap-1 sm:gap-4">
+              <img 
+                src="/images/siggy.png" 
+                alt="Siggy the Parrot" 
+                className="w-12 h-12 hover-wiggle cursor-pointer"
+              />
+              <h1 className={`font-bold siggy-text-gradient-outlined title-medium text-4xl`}>
+                Siggy
+              </h1>
+            </Link>
           </div>
           <div className={`flex items-center ${variant === 'homepage' ? 'gap-1 sm:gap-4' : 'gap-4'}`}>
+            {/* Navigation for dashboard/admin */}
+            {variant === 'dashboard' && (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/dashboard"
+                  className={`btn btn-sm ${pathname === '/dashboard' ? 'btn-primary' : 'btn-ghost'} hover-bounce`}
+                >
+                  🏠 Dashboard
+                </Link>
+                <Link
+                  href="/admin"
+                  className={`btn btn-sm ${pathname === '/admin' ? 'btn-primary' : 'btn-ghost'} hover-bounce`}
+                >
+                  🛠️ Admin
+                </Link>
+              </div>
+            )}
+            
             <ThemeToggle />
             {variant === 'homepage' ? (
               <ConnectWalletButton />
