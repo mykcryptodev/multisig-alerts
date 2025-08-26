@@ -91,6 +91,35 @@ h1, h2, h3, h4, h5, h6 {
   background-clip: text;
 }
 
+/* Black text stroke for Siggy in light mode - regular (1px) */
+.siggy-text-gradient-outlined {
+  background: var(--siggy-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Black text stroke for Siggy in light mode - thick (4px for headlines) */
+.siggy-text-gradient-outlined-thick {
+  background: var(--siggy-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Apply outline only in light mode - regular 1px stroke */
+[data-theme="light"] .siggy-text-gradient-outlined,
+:root:not([data-theme="dark"]) .siggy-text-gradient-outlined {
+  -webkit-text-stroke: 2px black;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Apply outline only in light mode - thick 4px stroke for headlines */
+[data-theme="light"] .siggy-text-gradient-outlined-thick,
+:root:not([data-theme="dark"]) .siggy-text-gradient-outlined-thick {
+  -webkit-text-stroke: 4px black;
+}
+
 .siggy-stroke-gradient {
   stroke: url(#siggyGradient);
   fill: none;

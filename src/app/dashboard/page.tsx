@@ -325,7 +325,7 @@ export default function DashboardPage() {
                 alt="Siggy the Parrot" 
                 className="w-12 h-12 hover-wiggle cursor-pointer"
               />
-              <h1 className="text-2xl font-bold siggy-text-gradient title-medium">Siggy Dashboard 🦜</h1>
+              <h1 className="text-2xl font-bold siggy-text-gradient-outlined title-medium">Siggy Dashboard 🦜</h1>
             </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
@@ -354,13 +354,13 @@ export default function DashboardPage() {
               className="w-20 h-20 bounce-gentle"
             />
           </div>
-          <h2 className="text-3xl font-bold siggy-text-gradient mb-2 title-large">Welcome to Siggy's Nest! 🏠</h2>
+          <h2 className="text-3xl font-bold siggy-text-gradient-outlined mb-2 title-large">Welcome to Siggy's Nest! 🏠</h2>
           <p className="text-lg opacity-80">Manage your multisigs and let Siggy keep watch! 👀</p>
         </div>
 
         {/* Quick Actions */}
         <div className="mb-12">
-          <h3 className="text-2xl font-bold siggy-text-gradient mb-6 text-center title-medium">Quick Actions 🚀</h3>
+          <h3 className="text-2xl font-bold siggy-text-gradient-outlined mb-6 text-center title-medium">Quick Actions 🚀</h3>
           <div className="flex flex-wrap justify-center gap-4 mb-6">
             <button
               onClick={() => setShowAddMultisig(true)}
@@ -431,7 +431,7 @@ export default function DashboardPage() {
         <div className="card-siggy hover-bounce mb-8">
           <div className="card-siggy-inner">
             <div className="card-body">
-              <h3 className="text-xl font-bold siggy-text-gradient mb-4">🎨 Toast Demo</h3>
+              <h3 className="text-xl font-bold siggy-text-gradient-outlined mb-4">🎨 Toast Demo</h3>
               <ToastDemo />
             </div>
           </div>
@@ -443,7 +443,7 @@ export default function DashboardPage() {
             <div className="card-body">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl">🏠</span>
-                <h2 className="text-2xl font-bold siggy-text-gradient title-medium">Your Safe Houses</h2>
+                <h2 className="text-2xl font-bold siggy-text-gradient-outlined title-medium">Your Safe Houses</h2>
               </div>
               
               {multisigs.length === 0 ? (
@@ -502,7 +502,7 @@ export default function DashboardPage() {
             <div className="card-body">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl">📱</span>
-                <h2 className="text-2xl font-bold siggy-text-gradient title-medium">Siggy's Communication Settings</h2>
+                <h2 className="text-2xl font-bold siggy-text-gradient-outlined title-medium">Siggy's Communication Settings</h2>
               </div>
               
               {notificationSettings ? (
@@ -594,7 +594,7 @@ export default function DashboardPage() {
             <div className="bg-base-100 rounded-2xl p-6 m-1">
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-4xl">🏠</span>
-                <h3 className="font-bold text-2xl siggy-text-gradient title-medium">Add New Safe House</h3>
+                <h3 className="font-bold text-2xl siggy-text-gradient-outlined title-medium">Add New Safe House</h3>
               </div>
             <form onSubmit={handleAddMultisig}>
               <div className="space-y-4">
@@ -672,7 +672,7 @@ export default function DashboardPage() {
             <div className="bg-base-100 rounded-2xl p-6 m-1">
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-4xl">📱</span>
-                <h3 className="font-bold text-2xl siggy-text-gradient title-medium">Teach Siggy to Squawk!</h3>
+                <h3 className="font-bold text-2xl siggy-text-gradient-outlined title-medium">Teach Siggy to Squawk!</h3>
               </div>
             <form onSubmit={handleUpdateNotifications}>
               <div className="space-y-4">
