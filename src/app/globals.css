@@ -200,8 +200,41 @@ h1, h2, h3, h4, h5, h6 {
   filter: brightness(1.2);
 }
 
+/* Quick Actions specific button style with gradient overlay */
+.btn-quick-action {
+  @apply text-xl px-8 py-4 rounded-2xl font-bold transform hover:scale-105 transition-all duration-200 relative;
+  background: var(--siggy-gradient);
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.btn-quick-action::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+  border-radius: 0 0 1rem 1rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.btn-quick-action > * {
+  position: relative;
+  z-index: 2;
+}
+
+.btn-quick-action:hover {
+  filter: brightness(1.1) saturate(1.2);
+  box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+  cursor: pointer;
+}
+
 /* Additional fun effects for the new tropical theme */
 .btn-siggy:hover {
   filter: brightness(1.1) saturate(1.2);
   box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+  cursor: pointer;
 }

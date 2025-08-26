@@ -314,29 +314,16 @@ export default function DashboardPage() {
       <Header variant="dashboard" onSignOut={signOut} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Message */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <img 
-              src="/images/siggy.png" 
-              alt="Siggy the Parrot" 
-              className="w-20 h-20 bounce-gentle"
-            />
-          </div>
-          <h2 className="text-3xl font-bold siggy-text-gradient-outlined mb-2 title-large">Welcome to Siggy's Nest! 🏠</h2>
-          <p className="text-lg opacity-80">Manage your multisigs and let Siggy keep watch! 👀</p>
-        </div>
-
         {/* Quick Actions */}
         <div className="mb-12">
-          <h3 className="text-2xl font-bold siggy-text-gradient-outlined mb-6 text-center title-medium">Quick Actions 🚀</h3>
+          <h3 className="text-4xl font-bold siggy-text-gradient-outlined mb-6 text-center title-medium">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-6 max-w-2xl mx-auto mb-6">
             <button
               onClick={() => setShowAddMultisig(true)}
-              className="btn-siggy hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
+              className="btn-quick-action hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
             >
-              <span className="text-4xl">🏠</span>
-              <span className="text-lg font-semibold">Add Safe</span>
+              <img src="/images/add.png" alt="Safe" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
+              <span className="text-xl font-semibold">Add Safe</span>
             </button>
             <button
               onClick={() => {
@@ -348,24 +335,24 @@ export default function DashboardPage() {
                 }
                 setShowTelegramConfig(true);
               }}
-              className="btn-siggy hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
+              className="btn-quick-action hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
             >
-              <span className="text-4xl">📱</span>
-              <span className="text-lg font-semibold">Setup Telegram</span>
+              <img src="/images/plug.png" alt="Safe" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
+              <span className="text-xl font-semibold">Setup Telegram</span>
             </button>
             <button
               onClick={handleTestTelegram}
-              className="btn-siggy hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
+              className="btn-quick-action hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
             >
-              <span className="text-4xl">📢</span>
-              <span className="text-lg font-semibold">Test Alert</span>
+              <img src="/images/shouting.png" alt="Safe" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
+              <span className="text-xl font-semibold">Test Alert</span>
             </button>
             <button
               onClick={handleManualCheck}
-              className="btn-siggy hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
+              className="btn-quick-action hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
             >
-              <span className="text-4xl">🔍</span>
-              <span className="text-lg font-semibold">Manual Check</span>
+              <img src="/images/check.png" alt="Safe" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
+              <span className="text-xl font-semibold">Manual Check</span>
             </button>
           </div>
           
@@ -408,7 +395,7 @@ export default function DashboardPage() {
             <div className="card-body">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl">🏠</span>
-                <h2 className="text-2xl font-bold siggy-text-gradient-outlined title-medium">Your Safe Houses</h2>
+                <h2 className="text-4xl font-bold siggy-text-gradient-outlined title-medium">Your Safe Houses</h2>
               </div>
               
               {multisigs.length === 0 ? (
@@ -467,7 +454,7 @@ export default function DashboardPage() {
             <div className="card-body">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl">📱</span>
-                <h2 className="text-2xl font-bold siggy-text-gradient-outlined title-medium">Siggy's Communication Settings</h2>
+                <h2 className="text-4xl font-bold siggy-text-gradient-outlined title-medium">Communication Settings</h2>
               </div>
               
               {notificationSettings ? (
