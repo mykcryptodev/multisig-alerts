@@ -330,12 +330,13 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div className="mb-12">
           <h3 className="text-2xl font-bold siggy-text-gradient-outlined mb-6 text-center title-medium">Quick Actions 🚀</h3>
-          <div className="flex flex-wrap justify-center gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-6 max-w-2xl mx-auto mb-6">
             <button
               onClick={() => setShowAddMultisig(true)}
-              className="btn-siggy hover-bounce"
+              className="btn-siggy hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
             >
-              🏠 Add Safe
+              <span className="text-4xl">🏠</span>
+              <span className="text-lg font-semibold">Add Safe</span>
             </button>
             <button
               onClick={() => {
@@ -347,21 +348,24 @@ export default function DashboardPage() {
                 }
                 setShowTelegramConfig(true);
               }}
-              className="btn-siggy hover-bounce"
+              className="btn-siggy hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
             >
-              📱 Setup Telegram
+              <span className="text-4xl">📱</span>
+              <span className="text-lg font-semibold">Setup Telegram</span>
             </button>
             <button
               onClick={handleTestTelegram}
-              className="btn-siggy hover-bounce"
+              className="btn-siggy hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
             >
-              📢 Test Alert
+              <span className="text-4xl">📢</span>
+              <span className="text-lg font-semibold">Test Alert</span>
             </button>
             <button
               onClick={handleManualCheck}
-              className="btn-siggy hover-bounce"
+              className="btn-siggy hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
             >
-              🔍 Manual Check
+              <span className="text-4xl">🔍</span>
+              <span className="text-lg font-semibold">Manual Check</span>
             </button>
           </div>
           

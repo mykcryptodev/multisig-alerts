@@ -24,10 +24,8 @@ export default function Header({ variant = 'homepage', onSignOut }: HeaderProps)
               alt="Siggy the Parrot" 
               className="w-12 h-12 hover-wiggle cursor-pointer"
             />
-            <h1 className={`font-bold siggy-text-gradient-outlined title-medium ${
-              variant === 'homepage' ? 'text-4xl' : 'text-2xl'
-            }`}>
-              {variant === 'homepage' ? 'Siggy' : 'Siggy Dashboard 🦜'}
+            <h1 className={`font-bold siggy-text-gradient-outlined title-medium text-4xl`}>
+              Siggy
             </h1>
           </div>
           <div className={`flex items-center ${variant === 'homepage' ? 'gap-1 sm:gap-4' : 'gap-4'}`}>
