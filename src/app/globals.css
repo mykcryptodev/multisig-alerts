@@ -17,6 +17,11 @@
   --siggy-gradient-reverse: linear-gradient(135deg, #FFE55C 0%, #B8FF6B 25%, #5EF2A0 50%, #00E5CC 75%, #00D4FF 100%);
 }
 
+/* Dark mode - brighter background */
+[data-theme="dark"] {
+  --siggy-gradient-soft: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 229, 204, 0.15) 25%, rgba(94, 242, 160, 0.15) 50%, rgba(184, 255, 107, 0.15) 75%, rgba(255, 229, 92, 0.15) 100%);
+}
+
 body {
   font-family: var(--font-segment), sans-serif;
 }
@@ -82,6 +87,16 @@ h1, h2, h3, h4, h5, h6 {
 
 .siggy-gradient-soft {
   background: var(--siggy-gradient-soft);
+}
+
+/* Gradient border - only visible in light mode */
+.border-gradient {
+  border-color: transparent;
+}
+
+[data-theme="light"] .border-gradient,
+:root:not([data-theme="dark"]) .border-gradient {
+  border-image: var(--siggy-gradient) 1;
 }
 
 .siggy-text-gradient {
