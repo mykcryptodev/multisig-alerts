@@ -5,6 +5,8 @@ import { ConnectWalletButton } from '@/components/providers/AuthProvider';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Megaphone03Icon, MoneySafeIcon, WalletDone01Icon } from '@hugeicons/core-free-icons'
 
 export default function HomePage() {
   const { user, isLoading } = useAuth();
@@ -28,12 +30,19 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-base-100">
+    <div className="min-h-screen siggy-gradient-soft">
       {/* Header */}
-      <header className="bg-base-200 shadow-lg border-b border-base-300">
+      <header className="bg-base-200/80 backdrop-blur-sm shadow-lg border-b-4 border-gradient">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-semibold">Multisig Alert</h1>
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-4">
+              <img 
+                src="/images/siggy.png" 
+                alt="Siggy the Parrot" 
+                className="w-12 h-12 hover-wiggle cursor-pointer"
+              />
+              <h1 className="text-2xl font-bold siggy-text-gradient title-medium">Siggy</h1>
+            </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
               <ConnectWalletButton />
@@ -43,87 +52,116 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
-          <h1 className="text-4xl font-bold sm:text-5xl md:text-6xl">
-            Never Miss a
-            <span className="text-primary"> Multisig Transaction</span>
+          {/* Siggy Hero Image */}
+          <div className="flex justify-center mb-8">
+            <img 
+              src="/images/siggy.png" 
+              alt="Siggy the Parrot" 
+              className="w-32 h-32 md:w-48 md:h-48 hover-wiggle cursor-pointer"
+            />
+          </div>
+          
+          <h1 className="text-5xl font-bold sm:text-6xl md:text-7xl lg:text-8xl mb-6 title-hero">
+            Meet{" "}
+            <span className="siggy-text-gradient">Siggy!</span>
           </h1>
-          <p className="mt-6 max-w-2xl mx-auto text-xl opacity-70">
-            Get instant Telegram notifications when your Gnosis Safe multisig has pending transactions 
-            that require your signature. Monitor multiple safes across different chains.
+          
+          <h2 className="text-3xl font-bold sm:text-4xl md:text-5xl mb-8 title-large">
+            Your Smart Multisig Guardian
+          </h2>
+          
+          <p className="mt-6 max-w-3xl mx-auto text-xl md:text-2xl opacity-80 leading-relaxed">
+            Siggy the Parrot keeps a watchful eye on your Gnosis Safe multisigs! 
+            Get instant Telegram notifications when transactions need your signature. 
+            Never miss an important transaction again! 🚀
           </p>
           
-          <div className="mt-10 flex justify-center">
-            <ConnectWalletButton />
+          <div className="mt-12 flex justify-center">
+            <div className="hover-bounce">
+              <ConnectWalletButton />
+            </div>
           </div>
         </div>
 
         {/* Features */}
-        <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="card bg-base-200 shadow-xl">
-            <div className="card-body">
-              <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+        <div className="mt-24 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="card-siggy hover-bounce">
+            <div className="card-siggy-inner">
+              <div className="card-body p-8">
+                <div className="text-6xl mb-6 text-center">🌈</div>
+                <h3 className="card-title text-2xl mb-4 siggy-text-gradient title-medium">Multi-Chain Magic!</h3>
+                <p className="text-lg">Siggy flies across all chains - Ethereum, Base, Polygon, and more! 
+                No blockchain is too far for our feathered friend! ✨</p>
               </div>
-              <h3 className="card-title">Multi-Chain Support</h3>
-              <p>Monitor your multisigs on Ethereum, Base, Polygon, and more.</p>
             </div>
           </div>
 
-          <div className="card bg-base-200 shadow-xl">
-            <div className="card-body">
-              <div className="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
+          <div className="card-siggy hover-bounce">
+            <div className="card-siggy-inner">
+              <div className="card-body p-8">
+                <div className="text-6xl mb-6 text-center">⚡</div>
+                <h3 className="card-title text-2xl mb-4 siggy-text-gradient title-medium">Lightning Fast Alerts!</h3>
+                <p className="text-lg">Siggy squawks instantly when transactions need your signature! 
+                Get Telegram notifications faster than you can say "Pretty Polly!" 🚨</p>
               </div>
-              <h3 className="card-title">Instant Notifications</h3>
-              <p>Get Telegram alerts immediately when transactions need your approval.</p>
             </div>
           </div>
 
-          <div className="card bg-base-200 shadow-xl">
-            <div className="card-body">
-              <div className="w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
+          <div className="card-siggy hover-bounce">
+            <div className="card-siggy-inner">
+              <div className="card-body p-8">
+                <div className="text-6xl mb-6 text-center">🔐</div>
+                <h3 className="card-title text-2xl mb-4 siggy-text-gradient title-medium">Safe & Secure!</h3>
+                <p className="text-lg">Just connect your wallet - no passwords needed! 
+                Siggy keeps your secrets safer than a bird's nest! 🛡️</p>
               </div>
-              <h3 className="card-title">Secure & Private</h3>
-              <p>Sign in with your wallet. No passwords or personal data required.</p>
             </div>
           </div>
         </div>
 
         {/* How it works */}
-        <div className="mt-20">
-          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary-content font-bold text-xl">1</span>
+        <div className="mt-32">
+          <h2 className="text-5xl font-bold text-center mb-4 siggy-text-gradient title-large">How Siggy Works!</h2>
+          <p className="text-center text-xl opacity-80 mb-16">Three simple steps to let Siggy guard your multisigs! 🦜</p>
+          
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
+            <div className="text-center hover-bounce">
+              <div className="w-24 h-24 siggy-gradient rounded-full flex items-center justify-center mx-auto mb-6 hover-wiggle">
+                <span className="text-white font-bold text-3xl">
+                  <HugeiconsIcon className="w-12 h-14 siggy-text-gradient" icon={WalletDone01Icon} />
+                </span>
               </div>
-              <h3 className="text-lg font-medium mb-2">Connect Your Wallet</h3>
-              <p className="opacity-70">Sign in with Ethereum using your preferred wallet.</p>
+              <h3 className="text-2xl font-bold mb-4 siggy-text-gradient title-medium">Connect Your Wallet</h3>
+              <p className="text-lg opacity-80">Sign in with your wallet - Siggy speaks your blockchain language!</p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary-content font-bold text-xl">2</span>
+            <div className="text-center hover-bounce">
+              <div className="w-24 h-24 siggy-gradient rounded-full flex items-center justify-center mx-auto mb-6 hover-wiggle">
+                <span className="text-white font-bold text-3xl">
+                  <HugeiconsIcon className="w-12 h-14 siggy-text-gradient" icon={MoneySafeIcon} />
+                </span>
               </div>
-              <h3 className="text-lg font-medium mb-2">Add Your Multisigs</h3>
-              <p className="opacity-70">Configure the Safe addresses you want to monitor.</p>
+              <h3 className="text-2xl font-bold mb-4 siggy-text-gradient title-medium">Add Your Safes</h3>
+              <p className="text-lg opacity-80">Tell Siggy which Safe addresses to watch. Our feathered friend never forgets!</p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary-content font-bold text-xl">3</span>
+            <div className="text-center hover-bounce">
+              <div className="w-24 h-24 siggy-gradient rounded-full flex items-center justify-center mx-auto mb-6 hover-wiggle">
+                <span className="text-white font-bold text-3xl">
+                  <HugeiconsIcon className="w-12 h-14 siggy-text-gradient" icon={Megaphone03Icon} />
+                </span>
               </div>
-              <h3 className="text-lg font-medium mb-2">Get Notified</h3>
-              <p className="opacity-70">Receive Telegram alerts for pending transactions.</p>
+              <h3 className="text-2xl font-bold mb-4 siggy-text-gradient title-medium">Get Squawked At!</h3>
+              <p className="text-lg opacity-80">Siggy sends you instant Telegram alerts when signatures are needed!</p>
+            </div>
+          </div>
+          
+          <div className="text-center mt-16">
+            <p className="text-2xl font-bold siggy-text-gradient mb-8">Ready to let Siggy guard your multisigs? 🚀</p>
+            <div className="hover-bounce">
+              <ConnectWalletButton />
             </div>
           </div>
         </div>

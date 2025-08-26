@@ -21,9 +21,20 @@ const segment = localFont({
   variable: "--font-segment",
 });
 
+const lilitaOne = localFont({
+  src: [
+    {
+      path: "../../public/fonts/Segment/LilitaOne-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+  ],
+  variable: "--font-lilita",
+});
+
 export const metadata: Metadata = {
-  title: "Multisig Alert",
-  description: "Get notified when your Gnosis Safe multisig has pending transactions",
+  title: "Siggy - Smart Multisig Notifications",
+  description: "Siggy the Parrot keeps watch over your Gnosis Safe multisigs! Get instant notifications when transactions need your signature.",
 };
 
 export default function RootLayout({
@@ -35,8 +46,9 @@ export default function RootLayout({
     <html lang="en" data-theme="dark">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/images/siggy.png" />
       </head>
-      <body className={`${segment.variable} antialiased`}>
+      <body className={`${segment.variable} ${lilitaOne.variable} antialiased`}>
         <ThemeProvider>
           <AuthProvider>
             {children}

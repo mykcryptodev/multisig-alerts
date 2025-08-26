@@ -314,18 +314,25 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-base-100">
+    <div className="min-h-screen siggy-gradient-soft">
       {/* Header */}
-      <header className="bg-base-200 shadow-lg border-b border-base-300">
+      <header className="bg-base-200/80 backdrop-blur-sm shadow-lg border-b-4 border-gradient">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-semibold">Multisig Alert Dashboard</h1>
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-4">
+              <img 
+                src="/images/siggy.png" 
+                alt="Siggy the Parrot" 
+                className="w-12 h-12 hover-wiggle cursor-pointer"
+              />
+              <h1 className="text-2xl font-bold siggy-text-gradient title-medium">Siggy Dashboard 🦜</h1>
+            </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
               <ConnectButton theme={theme === 'dark' ? 'dark' : 'light'} client={client} />
               <button
                 onClick={signOut}
-                className="btn btn-ghost btn-circle"
+                className="btn btn-ghost btn-circle hover-wiggle"
                 title="Sign Out"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -338,14 +345,28 @@ export default function DashboardPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Message */}
+        <div className="text-center mb-12">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/images/siggy.png" 
+              alt="Siggy the Parrot" 
+              className="w-20 h-20 bounce-gentle"
+            />
+          </div>
+          <h2 className="text-3xl font-bold siggy-text-gradient mb-2 title-large">Welcome to Siggy's Nest! 🏠</h2>
+          <p className="text-lg opacity-80">Manage your multisigs and let Siggy keep watch! 👀</p>
+        </div>
+
         {/* Quick Actions */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-4 mb-6">
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold siggy-text-gradient mb-6 text-center title-medium">Quick Actions 🚀</h3>
+          <div className="flex flex-wrap justify-center gap-4 mb-6">
             <button
               onClick={() => setShowAddMultisig(true)}
-              className="btn btn-primary"
+              className="btn-siggy hover-bounce"
             >
-              Add Multisig
+              🏠 Add Safe
             </button>
             <button
               onClick={() => {
@@ -357,134 +378,166 @@ export default function DashboardPage() {
                 }
                 setShowTelegramConfig(true);
               }}
-              className="btn btn-success"
+              className="btn-siggy hover-bounce"
             >
-              Configure Telegram
+              📱 Setup Telegram
             </button>
             <button
               onClick={handleTestTelegram}
-              className="btn btn-secondary"
+              className="btn-siggy hover-bounce"
             >
-              Test Telegram
+              📢 Test Alert
             </button>
             <button
               onClick={handleManualCheck}
-              className="btn btn-warning"
+              className="btn-siggy hover-bounce"
             >
-              Manual Check
+              🔍 Manual Check
             </button>
-            
-            {/* Test Transaction Type Buttons */}
-            <button
-              onClick={() => handleTestTransactionType('transfer')}
-              className="btn btn-info"
-              title="Test transfer transaction notifications"
-            >
-              Test Transfer
-            </button>
-            
-            <button
-              onClick={() => handleTestTransactionType('approval')}
-              className="btn btn-accent"
-              title="Test approval transaction notifications"
-            >
-              Test Approval
-            </button>
-            
-            <button
-              onClick={() => handleTestTransactionType('contract')}
-              className="btn btn-neutral"
-              title="Test contract call notifications"
-            >
-              Test Contract
-            </button>
+          </div>
+          
+          {/* Test Transaction Buttons */}
+          <div className="text-center">
+            <p className="text-sm opacity-70 mb-4">🧪 Test different transaction types:</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <button
+                onClick={() => handleTestTransactionType('transfer')}
+                className="btn btn-sm btn-outline hover-wiggle"
+                title="Test transfer transaction notifications"
+              >
+                💸 Transfer
+              </button>
+              
+              <button
+                onClick={() => handleTestTransactionType('approval')}
+                className="btn btn-sm btn-outline hover-wiggle"
+                title="Test approval transaction notifications"
+              >
+                ✅ Approval
+              </button>
+              
+              <button
+                onClick={() => handleTestTransactionType('contract')}
+                className="btn btn-sm btn-outline hover-wiggle"
+                title="Test contract call notifications"
+              >
+                📝 Contract
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Toast Demo Section */}
-        <div className="card bg-base-200 shadow-xl mb-8">
-          <div className="card-body">
-            <ToastDemo />
+        <div className="card-siggy hover-bounce mb-8">
+          <div className="card-siggy-inner">
+            <div className="card-body">
+              <h3 className="text-xl font-bold siggy-text-gradient mb-4">🎨 Toast Demo</h3>
+              <ToastDemo />
+            </div>
           </div>
         </div>
 
         {/* Multisigs Section */}
-        <div className="card bg-base-200 shadow-xl mb-8">
-          <div className="card-body">
-            <h2 className="card-title">Your Multisigs</h2>
-            
-            {multisigs.length === 0 ? (
-              <p className="opacity-70">No multisigs configured yet. Add your first one to get started!</p>
+        <div className="card-siggy hover-bounce mb-8">
+          <div className="card-siggy-inner">
+            <div className="card-body">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-3xl">🏠</span>
+                <h2 className="text-2xl font-bold siggy-text-gradient title-medium">Your Safe Houses</h2>
+              </div>
+              
+              {multisigs.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-6xl mb-4">🦜</div>
+                <p className="text-lg opacity-70">No Safe houses under Siggy's watch yet!</p>
+                <p className="text-sm opacity-60 mt-2">Add your first Safe to get started! 🏠</p>
+              </div>
             ) : (
               <div className="space-y-4">
                 {multisigs.map((multisig) => (
-                  <div key={multisig.id} className="card bg-base-100 border border-base-300">
-                    <div className="card-body p-4">
-                      <div className="flex items-center justify-between">
+                  <div key={multisig.id} className="bg-base-100 rounded-2xl border-2 border-transparent hover:border-gradient p-4 hover-bounce">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🏠</span>
                         <div>
-                          <h3 className="font-medium">
-                            {multisig.name || `Multisig ${multisig.address.slice(0, 6)}...${multisig.address.slice(-4)}`}
+                          <h3 className="font-bold text-lg">
+                            {multisig.name || `Safe ${multisig.address.slice(0, 6)}...${multisig.address.slice(-4)}`}
                           </h3>
                           <p className="text-sm opacity-70">
-                            Chain ID: {multisig.chainId} | Address: {multisig.address}
+                            ⛓️ Chain {multisig.chainId} | 📍 {multisig.address}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <label className="label cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={multisig.enabled}
-                              onChange={(e) => handleUpdateMultisig(multisig.id, { enabled: e.target.checked })}
-                              className="checkbox checkbox-primary"
-                            />
-                            <span className="label-text ml-2">Enabled</span>
-                          </label>
-                          <button
-                            onClick={() => handleDeleteMultisig(multisig.id)}
-                            className="btn btn-ghost btn-sm text-error"
-                          >
-                            Delete
-                          </button>
-                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <label className="label cursor-pointer hover-wiggle">
+                          <input
+                            type="checkbox"
+                            checked={multisig.enabled}
+                            onChange={(e) => handleUpdateMultisig(multisig.id, { enabled: e.target.checked })}
+                            className="checkbox checkbox-primary"
+                          />
+                          <span className="label-text ml-2 font-medium">
+                            {multisig.enabled ? '👁️ Watching' : '😴 Sleeping'}
+                          </span>
+                        </label>
+                        <button
+                          onClick={() => handleDeleteMultisig(multisig.id)}
+                          className="btn btn-ghost btn-sm text-error hover-wiggle"
+                        >
+                          🗑️ Remove
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
         {/* Notification Settings Section */}
-        <div className="card bg-base-200 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title">Notification Settings</h2>
-            
-            {notificationSettings ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm opacity-70">Telegram Bot Token</p>
-                    <p className="font-mono text-sm">
-                      {notificationSettings.telegramBotToken ? 
-                        `${notificationSettings.telegramBotToken.slice(0, 10)}...` : 
-                        'Not configured'
-                      }
-                    </p>
+        <div className="card-siggy hover-bounce">
+          <div className="card-siggy-inner">
+            <div className="card-body">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-3xl">📱</span>
+                <h2 className="text-2xl font-bold siggy-text-gradient title-medium">Siggy's Communication Settings</h2>
+              </div>
+              
+              {notificationSettings ? (
+              <div className="space-y-6">
+                <div className="bg-base-100 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">🤖</span>
+                    <p className="font-bold">Bot Token</p>
                   </div>
+                  <p className="font-mono text-sm opacity-70">
+                    {notificationSettings.telegramBotToken ? 
+                      `${notificationSettings.telegramBotToken.slice(0, 10)}...` : 
+                      '❌ Not configured'
+                    }
+                  </p>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm opacity-70">Telegram Chat ID</p>
-                    <p className="font-mono text-sm">
-                      {notificationSettings.telegramChatId || 'Not configured'}
-                    </p>
+                <div className="bg-base-100 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">💬</span>
+                    <p className="font-bold">Chat ID</p>
                   </div>
+                  <p className="font-mono text-sm opacity-70">
+                    {notificationSettings.telegramChatId || '❌ Not configured'}
+                  </p>
                 </div>
                 
-                <div className="flex items-center">
-                  <label className="label cursor-pointer">
+                <div className="bg-base-100 rounded-xl p-4">
+                  <label className="label cursor-pointer hover-wiggle">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{notificationSettings.enabled ? '🔔' : '🔕'}</span>
+                      <span className="label-text font-bold">
+                        {notificationSettings.enabled ? 'Siggy is squawking!' : 'Siggy is quiet...'}
+                      </span>
+                    </div>
                     <input
                       type="checkbox"
                       checked={notificationSettings.enabled}
@@ -503,7 +556,7 @@ export default function DashboardPage() {
                             await loadUserData();
                             // Close pending toast and show success
                             toast.dismiss(pendingToast);
-                            showToast.success(`Notifications ${e.target.checked ? 'enabled' : 'disabled'} successfully!`);
+                            showToast.success(`Siggy is now ${e.target.checked ? 'watching and ready to squawk! 🦜' : 'taking a quiet nap... 😴'}`);
                           } else {
                             const error = await response.json();
                             // Close pending toast and show error
@@ -519,13 +572,17 @@ export default function DashboardPage() {
                       }}
                       className="checkbox checkbox-primary"
                     />
-                    <span className="label-text ml-2">Enable notifications</span>
                   </label>
                 </div>
               </div>
             ) : (
-              <p className="opacity-70">Notification settings not configured yet.</p>
-            )}
+              <div className="text-center py-8">
+                <div className="text-6xl mb-4">📱</div>
+                <p className="text-lg opacity-70">Siggy needs to learn how to reach you!</p>
+                <p className="text-sm opacity-60 mt-2">Configure Telegram to get started! 🚀</p>
+              </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -533,8 +590,12 @@ export default function DashboardPage() {
       {/* Add Multisig Modal */}
       {showAddMultisig && (
         <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg mb-4">Add New Multisig</h3>
+          <div className="modal-box border-4 siggy-gradient rounded-3xl">
+            <div className="bg-base-100 rounded-2xl p-6 m-1">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-4xl">🏠</span>
+                <h3 className="font-bold text-2xl siggy-text-gradient title-medium">Add New Safe House</h3>
+              </div>
             <form onSubmit={handleAddMultisig}>
               <div className="space-y-4">
                 <div className="form-control">
@@ -586,19 +647,20 @@ export default function DashboardPage() {
               <div className="modal-action">
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className="btn-siggy hover-bounce"
                 >
-                  Add Multisig
+                  🏠 Add Safe House
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddMultisig(false)}
-                  className="btn btn-ghost"
+                  className="btn btn-ghost hover-wiggle"
                 >
-                  Cancel
+                  ❌ Cancel
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
@@ -606,8 +668,12 @@ export default function DashboardPage() {
       {/* Telegram Config Modal */}
       {showTelegramConfig && (
         <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg mb-4">Configure Telegram Notifications</h3>
+          <div className="modal-box border-4 siggy-gradient rounded-3xl">
+            <div className="bg-base-100 rounded-2xl p-6 m-1">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-4xl">📱</span>
+                <h3 className="font-bold text-2xl siggy-text-gradient title-medium">Teach Siggy to Squawk!</h3>
+              </div>
             <form onSubmit={handleUpdateNotifications}>
               <div className="space-y-4">
                 <div className="form-control">
@@ -642,19 +708,20 @@ export default function DashboardPage() {
               <div className="modal-action">
                 <button
                   type="submit"
-                  className="btn btn-success"
+                  className="btn-siggy hover-bounce"
                 >
-                  Save Settings
+                  🦜 Teach Siggy!
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowTelegramConfig(false)}
-                  className="btn btn-ghost"
+                  className="btn btn-ghost hover-wiggle"
                 >
-                  Cancel
+                  ❌ Cancel
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
