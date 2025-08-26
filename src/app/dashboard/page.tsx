@@ -313,17 +313,17 @@ export default function DashboardPage() {
     <div className="min-h-screen siggy-gradient-soft">
       <Header variant="dashboard" onSignOut={signOut} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
         {/* Quick Actions */}
         <div className="mb-12">
-          <h3 className="text-4xl font-bold siggy-text-gradient-outlined mb-6 text-center title-medium">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-6 max-w-2xl mx-auto mb-6">
+          <h3 className="text-2xl sm:text-4xl font-bold siggy-text-gradient-outlined mb-6 text-center title-medium">Quick Actions</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-6 max-w-2xl mx-auto mb-6">
             <button
               onClick={() => setShowAddMultisig(true)}
-              className="btn-quick-action hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
+              className="btn-quick-action hover-bounce flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 h-auto"
             >
-              <img src="/images/add.png" alt="Safe" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
-              <span className="text-xl font-semibold">Add Safe</span>
+              <img src="/images/add.png" alt="Safe" className="w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 mb-2 sm:mb-6 hover-wiggle mx-auto" />
+              <span className="text-sm sm:text-lg lg:text-xl font-semibold text-center">Add Safe</span>
             </button>
             <button
               onClick={() => {
@@ -335,24 +335,24 @@ export default function DashboardPage() {
                 }
                 setShowTelegramConfig(true);
               }}
-              className="btn-quick-action hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
+              className="btn-quick-action hover-bounce flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 h-auto"
             >
-              <img src="/images/plug.png" alt="Safe" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
-              <span className="text-xl font-semibold">Setup Telegram</span>
+              <img src="/images/plug.png" alt="Safe" className="w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 mb-2 sm:mb-6 hover-wiggle mx-auto" />
+              <span className="text-sm sm:text-lg lg:text-xl font-semibold text-center">Setup Telegram</span>
             </button>
             <button
               onClick={handleTestTelegram}
-              className="btn-quick-action hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
+              className="btn-quick-action hover-bounce flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 h-auto"
             >
-              <img src="/images/shouting.png" alt="Safe" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
-              <span className="text-xl font-semibold">Test Alert</span>
+              <img src="/images/scientist.png" alt="Safe" className="w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 mb-2 sm:mb-6 hover-wiggle mx-auto" />
+              <span className="text-sm sm:text-lg lg:text-xl font-semibold text-center">Test Alert</span>
             </button>
             <button
               onClick={handleManualCheck}
-              className="btn-quick-action hover-bounce flex flex-col items-center gap-3 p-6 h-auto"
+              className="btn-quick-action hover-bounce flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 h-auto"
             >
-              <img src="/images/check.png" alt="Safe" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
-              <span className="text-xl font-semibold">Manual Check</span>
+              <img src="/images/check.png" alt="Safe" className="w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 mb-2 sm:mb-6 hover-wiggle mx-auto" />
+              <span className="text-sm sm:text-lg lg:text-xl font-semibold text-center">Manual Check</span>
             </button>
           </div>
           
@@ -394,8 +394,8 @@ export default function DashboardPage() {
           <div className="card-siggy-inner">
             <div className="card-body">
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-3xl">🏠</span>
-                <h2 className="text-4xl font-bold siggy-text-gradient-outlined title-medium">Your Safe Houses</h2>
+                <span className="text-2xl sm:text-3xl">🏠</span>
+                <h2 className="text-2xl sm:text-4xl font-bold siggy-text-gradient-outlined title-medium">Your Safe Houses</h2>
               </div>
               
               {multisigs.length === 0 ? (
@@ -408,27 +408,28 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 {multisigs.map((multisig) => (
                   <div key={multisig.id} className="bg-base-100 rounded-2xl border-2 border-transparent hover:border-gradient p-4 hover-bounce">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">🏠</span>
-                        <div>
-                          <h3 className="font-bold text-lg">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        <span className="text-2xl flex-shrink-0">🏠</span>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-lg truncate">
                             {multisig.name || `Safe ${multisig.address.slice(0, 6)}...${multisig.address.slice(-4)}`}
                           </h3>
-                          <p className="text-sm opacity-70">
-                            ⛓️ Chain {multisig.chainId} | 📍 {multisig.address}
-                          </p>
+                          <div className="text-sm opacity-70 space-y-1">
+                            <p>⛓️ Chain {multisig.chainId}</p>
+                            <p className="break-all font-mono text-xs">📍 {multisig.address}</p>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <label className="label cursor-pointer hover-wiggle">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-shrink-0">
+                        <label className="label cursor-pointer hover-wiggle flex items-center gap-2">
                           <input
                             type="checkbox"
                             checked={multisig.enabled}
                             onChange={(e) => handleUpdateMultisig(multisig.id, { enabled: e.target.checked })}
                             className="checkbox checkbox-primary"
                           />
-                          <span className="label-text ml-2 font-medium">
+                          <span className="label-text font-medium text-sm">
                             {multisig.enabled ? '👁️ Watching' : '😴 Sleeping'}
                           </span>
                         </label>
@@ -453,8 +454,8 @@ export default function DashboardPage() {
           <div className="card-siggy-inner">
             <div className="card-body">
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-3xl">📱</span>
-                <h2 className="text-4xl font-bold siggy-text-gradient-outlined title-medium">Communication Settings</h2>
+                <span className="text-2xl sm:text-3xl">📱</span>
+                <h2 className="text-2xl sm:text-4xl font-bold siggy-text-gradient-outlined title-medium">Communication Settings</h2>
               </div>
               
               {notificationSettings ? (
@@ -542,11 +543,11 @@ export default function DashboardPage() {
       {/* Add Multisig Modal */}
       {showAddMultisig && (
         <div className="modal modal-open">
-          <div className="modal-box border-4 siggy-gradient rounded-3xl">
-            <div className="bg-base-100 rounded-2xl p-6 m-1">
+          <div className="modal-box border-4 siggy-gradient rounded-3xl max-w-sm sm:max-w-lg mx-4">
+            <div className="bg-base-100 rounded-2xl p-4 sm:p-6 m-1">
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-4xl">🏠</span>
-                <h3 className="font-bold text-2xl siggy-text-gradient-outlined title-medium">Add New Safe House</h3>
+                <span className="text-2xl sm:text-4xl">🏠</span>
+                <h3 className="font-bold text-lg sm:text-2xl siggy-text-gradient-outlined title-medium">Add New Safe House</h3>
               </div>
             <form onSubmit={handleAddMultisig}>
               <div className="space-y-4">
@@ -620,11 +621,11 @@ export default function DashboardPage() {
       {/* Telegram Config Modal */}
       {showTelegramConfig && (
         <div className="modal modal-open">
-          <div className="modal-box border-4 siggy-gradient rounded-3xl">
-            <div className="bg-base-100 rounded-2xl p-6 m-1">
+          <div className="modal-box border-4 siggy-gradient rounded-3xl max-w-sm sm:max-w-lg mx-4">
+            <div className="bg-base-100 rounded-2xl p-4 sm:p-6 m-1">
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-4xl">📱</span>
-                <h3 className="font-bold text-2xl siggy-text-gradient-outlined title-medium">Teach Siggy to Squawk!</h3>
+                <span className="text-2xl sm:text-4xl">📱</span>
+                <h3 className="font-bold text-lg sm:text-2xl siggy-text-gradient-outlined title-medium">Teach Siggy to Squawk!</h3>
               </div>
             <form onSubmit={handleUpdateNotifications}>
               <div className="space-y-4">

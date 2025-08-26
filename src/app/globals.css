@@ -202,7 +202,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Quick Actions specific button style with gradient overlay */
 .btn-quick-action {
-  @apply text-xl px-8 py-4 rounded-2xl font-bold transform hover:scale-105 transition-all duration-200 relative;
+  @apply text-base sm:text-xl px-4 sm:px-8 py-3 sm:py-4 rounded-2xl font-bold transform hover:scale-105 transition-all duration-200 relative;
   background: var(--siggy-gradient);
   color: white;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
@@ -237,4 +237,35 @@ h1, h2, h3, h4, h5, h6 {
   filter: brightness(1.1) saturate(1.2);
   box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
   cursor: pointer;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  /* Prevent horizontal scrolling */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Ensure all containers respect mobile width */
+  .modal-box {
+    max-width: calc(100vw - 2rem);
+    margin: 0 1rem;
+  }
+  
+  /* Better text handling on mobile */
+  .font-mono {
+    font-size: 0.75rem;
+    word-break: break-all;
+  }
+  
+  /* Responsive card padding */
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* Better mobile button sizing */
+  .btn-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
 }

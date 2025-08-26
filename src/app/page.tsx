@@ -59,9 +59,7 @@ export default function HomePage() {
           </p>
           
           <div className="mt-12 flex justify-center">
-            <div className="hover-bounce">
-              <ConnectWalletButton />
-            </div>
+            <ConnectWalletButton />
           </div>
         </div>
 
@@ -74,13 +72,13 @@ export default function HomePage() {
               <p className="text-lg opacity-80 tracking-tight">Sign in with your wallet - Siggy speaks your blockchain language!</p>
             </div>
 
-            <div className="text-center">
+            <div className="text-center hover-bounce">
               <img src="/images/ifitfitsisits.png" alt="Safe" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
               <h3 className="text-4xl font-bold mb-4 siggy-text-gradient-outlined title-medium">Add Your Safes</h3>
               <p className="text-lg opacity-80 tracking-tight">Tell Siggy which Safe addresses to watch. Our feathered friend never forgets!</p>
             </div>
 
-            <div className="text-center">
+            <div className="text-center hover-bounce">
               <img src="/images/shouting.png" alt="Megaphone" width={180} height={180} className="mb-6 hover-wiggle mx-auto" />
               <h3 className="text-4xl font-bold mb-4 siggy-text-gradient-outlined title-medium">Get Squawked At!</h3>
               <p className="text-lg opacity-80 tracking-tight">Siggy sends you instant Telegram alerts when signatures are needed!</p>
@@ -89,9 +87,7 @@ export default function HomePage() {
           
           <div className="text-center mt-16">
             <p className="text-2xl mb-8 tracking-tight">Ready to let Siggy guard your multisigs?</p>
-            <div className="hover-bounce">
-              <ConnectWalletButton />
-            </div>
+            <ConnectWalletButton />
           </div>
         </div>
       </div>

@@ -28,30 +28,12 @@ export default function Header({ variant = 'homepage', onSignOut }: HeaderProps)
                 alt="Siggy the Parrot" 
                 className="w-12 h-12 hover-wiggle cursor-pointer"
               />
-              <h1 className={`font-bold siggy-text-gradient-outlined title-medium text-4xl`}>
+              <h1 className={`font-bold siggy-text-gradient-outlined title-medium text-2xl sm:text-4xl`}>
                 Siggy
               </h1>
             </Link>
           </div>
-          <div className={`flex items-center ${variant === 'homepage' ? 'gap-1 sm:gap-4' : 'gap-4'}`}>
-            {/* Navigation for dashboard/admin */}
-            {variant === 'dashboard' && (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/dashboard"
-                  className={`btn btn-sm ${pathname === '/dashboard' ? 'btn-primary' : 'btn-ghost'} hover-bounce`}
-                >
-                  🏠 Dashboard
-                </Link>
-                <Link
-                  href="/admin"
-                  className={`btn btn-sm ${pathname === '/admin' ? 'btn-primary' : 'btn-ghost'} hover-bounce`}
-                >
-                  🛠️ Admin
-                </Link>
-              </div>
-            )}
-            
+          <div className={`flex items-center gap-1 sm:gap-4`}>           
             <ThemeToggle />
             {variant === 'homepage' ? (
               <ConnectWalletButton />
