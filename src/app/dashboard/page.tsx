@@ -369,13 +369,19 @@ export default function DashboardPage() {
             <div className="card-body">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl sm:text-3xl">🏠</span>
-                <h2 className="text-2xl sm:text-4xl font-bold siggy-text-gradient-outlined title-medium">Your Safe Houses</h2>
+                <h2 className="text-2xl sm:text-4xl font-bold siggy-text-gradient-outlined title-medium">Your Safes</h2>
               </div>
               
               {multisigs.length === 0 ? (
               <div className="text-center py-8">
-                <div className="text-6xl mb-4">🦜</div>
-                <p className="text-lg opacity-70">No Safe houses under Siggy&apos;s watch yet!</p>
+                <div className="flex justify-center mb-4">
+                  <img 
+                    src="/images/siggy.png" 
+                    alt="Siggy the Parrot" 
+                    className="w-24 h-24"
+                  />
+                </div>
+                <p className="text-lg opacity-70">No Safes under Siggy&apos;s watch yet!</p>
                 <p className="text-sm opacity-60 mt-2">Add your first Safe to get started! 🏠</p>
               </div>
             ) : (

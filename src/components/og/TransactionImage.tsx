@@ -122,7 +122,16 @@ function TransactionHeader({ tokenDetails }: { tokenDetails?: ERC20TransactionDe
           WebkitTextFillColor: 'transparent',
         }}
       >
-        🦜 Siggy Alert!
+        <img 
+          src="/images/siggy.png" 
+          alt="Siggy the Parrot" 
+          style={{
+            width: '40px',
+            height: '40px',
+            marginRight: '10px',
+          }}
+        />
+        Siggy Alert!
       </div>
       
       {/* Transaction Type */}
