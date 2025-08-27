@@ -8,6 +8,7 @@ import { showToast } from '@/components/CustomToast';
 import { toast } from 'react-toastify';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { MoneySafeIcon } from '@hugeicons/core-free-icons';
+import Link from 'next/link';
 
 interface Multisig {
   id: string;
