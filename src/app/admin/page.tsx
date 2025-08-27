@@ -47,6 +47,14 @@ interface SeenTransaction {
   confirmations: number;
   threshold: number;
   notified: boolean;
+  multisig: {
+    address: string;
+    chainId: number;
+    user: {
+      name?: string | null;
+      walletAddress: string;
+    };
+  };
 }
 
 interface AdminStats {
@@ -74,7 +82,7 @@ export default function AdminPage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<SeenTransaction[]>([]);
   const [selectedView, setSelectedView] = useState<'overview' | 'users' | 'multisigs' | 'transactions' | 'toast'>('overview');
 
   // Load admin data
@@ -155,7 +163,7 @@ export default function AdminPage() {
             />
           </div>
           <h1 className="text-3xl font-bold siggy-text-gradient-outlined mb-2 title-large">Admin Control Panel 🛠️</h1>
-          <p className="text-lg opacity-80">Siggy's command center for system oversight</p>
+          <p className="text-lg opacity-80">Siggy&apos;s command center for system oversight</p>
         </div>
 
         {/* Navigation Tabs */}
@@ -169,7 +177,7 @@ export default function AdminPage() {
           ].map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setSelectedView(tab.key as any)}
+              onClick={() => setSelectedView(tab.key as 'overview' | 'users' | 'multisigs' | 'transactions' | 'toast')}
               className={`btn ${selectedView === tab.key ? 'btn-primary' : 'btn-outline'} hover-bounce`}
             >
               {tab.icon} {tab.label}
@@ -344,7 +352,7 @@ export default function AdminPage() {
                           
                           {user.multisigs && user.multisigs.length > 0 && (
                             <div className="mt-4 pl-12">
-                              <h5 className="font-semibold mb-2 text-sm">User's Safes:</h5>
+                              <h5 className="font-semibold mb-2 text-sm">User&apos;s Safes:</h5>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 {user.multisigs.map((multisig) => (
                                   <div key={multisig.id} className="bg-base-200 rounded-lg p-2 text-xs">

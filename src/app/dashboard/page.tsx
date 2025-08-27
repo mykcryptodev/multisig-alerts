@@ -8,7 +8,7 @@ import { showToast } from '@/components/CustomToast';
 import { toast } from 'react-toastify';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { MoneySafeIcon } from '@hugeicons/core-free-icons';
-import Link from 'next/link';
+
 
 interface Multisig {
   id: string;
@@ -375,7 +375,7 @@ export default function DashboardPage() {
               {multisigs.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-6xl mb-4">🦜</div>
-                <p className="text-lg opacity-70">No Safe houses under Siggy's watch yet!</p>
+                <p className="text-lg opacity-70">No Safe houses under Siggy&apos;s watch yet!</p>
                 <p className="text-sm opacity-60 mt-2">Add your first Safe to get started! 🏠</p>
               </div>
             ) : (
@@ -663,7 +663,7 @@ export default function DashboardPage() {
                 <span className="text-2xl sm:text-4xl">🧪</span>
                 <h3 className="font-bold text-lg sm:text-2xl siggy-text-gradient-outlined title-medium">Test Your Alert!</h3>
               </div>
-              <p className="text-sm opacity-70 mb-4">Choose how you'd like to test your alert:</p>
+              <p className="text-sm opacity-70 mb-4">Choose how you&apos;d like to test your alert:</p>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={handleTestTelegram}

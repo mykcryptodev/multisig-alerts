@@ -6,7 +6,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { client } from '@/lib/thirdweb-auth';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+
 
 interface HeaderProps {
   variant?: 'homepage' | 'dashboard';
@@ -15,7 +15,7 @@ interface HeaderProps {
 
 export default function Header({ variant = 'homepage', onSignOut }: HeaderProps) {
   const { theme } = useTheme();
-  const pathname = usePathname();
+
 
   return (
     <header className="bg-base-200/80 backdrop-blur-sm shadow-lg border-b-4 border-gradient">
