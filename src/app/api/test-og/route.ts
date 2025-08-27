@@ -22,21 +22,23 @@ export async function GET() {
     
     return NextResponse.json({
       success: true,
-      message: 'OG Image test endpoint',
+      message: '🦜 Siggy OG Image Test Endpoint',
       ogImageUrl,
       testParams: Object.fromEntries(testParams.entries()),
       instructions: [
-        'Visit the ogImageUrl to see the generated image',
-        'This tests the OG image generation with the specific Safe address: 0x3de0ba94a1f291a7c44bb029b765adb2c487063f',
-        'The image should show only 1 owner as expected',
-        'Check the browser console for any errors',
+        '🖼️ Visit the ogImageUrl to see Siggy\'s beautiful new tropical-themed OG image!',
+        '🦜 This tests the OG image generation with Siggy\'s vibrant gradient design',
+        '🎨 Look for the new cyan-to-yellow tropical gradient and Lilita One font',
+        '👥 The image should show 1 owner with Siggy\'s colorful styling',
+        '🔍 Check the browser console for any errors',
+        '✨ The new design matches the playful Siggy theme throughout the app!',
       ],
     });
   } catch {
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to generate test parameters',
+        error: '🦜 Siggy couldn\'t generate test parameters! Something went squawk...',
       },
       { status: 500 }
       );

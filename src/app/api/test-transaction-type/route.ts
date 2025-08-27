@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Invalid transaction type. Must be: transfer, approval, or contract',
+          message: '🦜 Siggy doesn\'t recognize that transaction type! *confused squawk* Must be: transfer, approval, or contract',
         },
         { status: 400 }
       );
@@ -20,13 +20,13 @@ export async function POST(request: NextRequest) {
     const telegram = getTelegram();
     
     // Test 1: Send a simple text message
-    const textSent = await telegram.sendMessage(`🧪 Testing ${transactionType} transaction type...`);
+    const textSent = await telegram.sendMessage(`🦜 Siggy is testing ${transactionType} transaction type! *excited squawk*`);
     
     if (!textSent) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Failed to send text message. Check your Telegram configuration.',
+          message: '🦜 Siggy couldn\'t send the text message! *sad chirp* Check your Telegram configuration.',
         },
         { status: 500 }
       );
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       if (imageSent) {
         return NextResponse.json({
           success: true,
-          message: `${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} transaction test successful! Both text message and OG image sent.`,
+          message: `🦜 Siggy successfully tested ${transactionType} transaction! Both text message and tropical OG image sent! *proud squawk*`,
           tests: {
             textMessage: 'Passed',
             ogImage: 'Passed',
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       } else {
         return NextResponse.json({
           success: true,
-          message: `⚠️ ${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} transaction text message sent, but OG image failed. Check console for details.`,
+          message: `🦜 Siggy sent the ${transactionType} transaction text message, but the OG image didn't work. *disappointed chirp* Check console for details.`,
           tests: {
             textMessage: 'Passed',
             ogImage: 'Failed',
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json({
         success: true,
-        message: `⚠️ ${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} transaction text message sent, but OG image generation failed. Check console for details.`,
+        message: `🦜 Siggy sent the ${transactionType} transaction text message, but the OG image generation went squawk! *worried chirp* Check console for details.`,
         tests: {
           textMessage: 'Passed',
           ogImage: 'Error',
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        message: 'Failed to test transaction type. Check your configuration and console logs.',
+        message: '🦜 Siggy couldn\'t test the transaction type! *distressed squawk* Check your configuration and console logs.',
       },
       { status: 500 }
     );
