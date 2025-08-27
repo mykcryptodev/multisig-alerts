@@ -22,12 +22,12 @@ export async function GET() {
     
     return NextResponse.json({
       success: true,
-      message: '🦜 Siggy OG Image Test Endpoint',
+      message: ' Siggy OG Image Test Endpoint',
       ogImageUrl,
       testParams: Object.fromEntries(testParams.entries()),
       instructions: [
         '🖼️ Visit the ogImageUrl to see Siggy\'s beautiful new tropical-themed OG image!',
-        '🦜 This tests the OG image generation with Siggy\'s vibrant gradient design',
+        ' This tests the OG image generation with Siggy\'s vibrant gradient design',
         '🎨 Look for the new cyan-to-yellow tropical gradient and Lilita One font',
         '👥 The image should show 1 owner with Siggy\'s colorful styling',
         '🔍 Check the browser console for any errors',
@@ -38,7 +38,7 @@ export async function GET() {
     return NextResponse.json(
       {
         success: false,
-        error: '🦜 Siggy couldn\'t generate test parameters! Something went squawk...',
+        error: ' Siggy couldn\'t generate test parameters! Something went squawk...',
       },
       { status: 500 }
       );

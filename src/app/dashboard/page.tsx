@@ -489,7 +489,7 @@ export default function DashboardPage() {
                             await loadUserData();
                             // Close pending toast and show success
                             toast.dismiss(pendingToast);
-                            showToast.success(`Siggy is now ${e.target.checked ? 'watching and ready to squawk! 🦜' : 'taking a quiet nap... 😴'}`);
+                            showToast.success(`Siggy is now ${e.target.checked ? 'watching and ready to squawk! ' : 'taking a quiet nap... 😴'}`);
                           } else {
                             const error = await response.json();
                             // Close pending toast and show error
