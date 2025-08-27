@@ -66,6 +66,7 @@
 [data-theme="dark"] .Toastify__toast {
   background: transparent !important;
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3) !important;
+  backdrop-filter: blur(2px);
 }
 
 /* Light theme specific overrides */

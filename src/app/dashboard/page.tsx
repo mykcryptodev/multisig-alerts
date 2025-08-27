@@ -6,6 +6,8 @@ import Header from '@/components/Header';
 
 import { showToast } from '@/components/CustomToast';
 import { toast } from 'react-toastify';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { MoneySafeIcon } from '@hugeicons/core-free-icons';
 
 interface Multisig {
   id: string;
@@ -543,11 +545,11 @@ export default function DashboardPage() {
       {/* Add Multisig Modal */}
       {showAddMultisig && (
         <div className="modal modal-open">
-          <div className="modal-box border-4 siggy-gradient rounded-3xl max-w-sm sm:max-w-lg mx-4">
+          <div className="modal-box siggy-gradient rounded-3xl max-w-sm sm:max-w-lg mx-4">
             <div className="bg-base-100 rounded-2xl p-4 sm:p-6 m-1">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="text-2xl sm:text-4xl">🏠</span>
-                <h3 className="font-bold text-lg sm:text-2xl siggy-text-gradient-outlined title-medium">Add New Safe House</h3>
+              <div className="flex flex-col items-center gap-3 mb-6">
+                <img src="/images/add.png" alt="Safe" className="w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 mb-2 sm:mb-6 hover-wiggle mx-auto" />
+                <h3 className="font-bold text-lg sm:text-2xl title-medium">Add New Safe</h3>
               </div>
             <form onSubmit={handleAddMultisig}>
               <div className="space-y-4">
@@ -597,19 +599,20 @@ export default function DashboardPage() {
                 </div>
               </div>
               
-              <div className="modal-action">
-                <button
-                  type="submit"
-                  className="btn-siggy hover-bounce"
-                >
-                  🏠 Add Safe House
-                </button>
+              <div className="modal-action flex items-center gap-2 justify-between">
                 <button
                   type="button"
                   onClick={() => setShowAddMultisig(false)}
                   className="btn btn-ghost hover-wiggle"
                 >
                   ❌ Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-siggy hover-bounce flex items-center gap-2"
+                >
+                  <HugeiconsIcon icon={MoneySafeIcon} />
+                  Add Safe
                 </button>
               </div>
             </form>
@@ -621,7 +624,7 @@ export default function DashboardPage() {
       {/* Telegram Config Modal */}
       {showTelegramConfig && (
         <div className="modal modal-open">
-          <div className="modal-box border-4 siggy-gradient rounded-3xl max-w-sm sm:max-w-lg mx-4">
+          <div className="modal-box siggy-gradient rounded-3xl max-w-sm sm:max-w-lg mx-4">
             <div className="bg-base-100 rounded-2xl p-4 sm:p-6 m-1">
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-2xl sm:text-4xl">📱</span>
@@ -658,19 +661,19 @@ export default function DashboardPage() {
                 </div>
               </div>
               
-              <div className="modal-action">
-                <button
-                  type="submit"
-                  className="btn-siggy hover-bounce"
-                >
-                  🦜 Teach Siggy!
-                </button>
+              <div className="modal-action flex items-center gap-2 justify-between">
                 <button
                   type="button"
                   onClick={() => setShowTelegramConfig(false)}
                   className="btn btn-ghost hover-wiggle"
                 >
                   ❌ Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-siggy hover-bounce"
+                >
+                  Teach Siggy
                 </button>
               </div>
             </form>

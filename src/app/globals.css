@@ -155,10 +155,28 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Oversized, playful elements */
 .btn-siggy {
-  @apply text-xl px-8 py-4 rounded-2xl font-bold transform hover:scale-105 transition-all duration-200;
+  @apply text-xl px-8 py-4 rounded-2xl font-bold transform hover:scale-105 transition-all duration-200 relative;
   background: var(--siggy-gradient);
   color: white;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.btn-siggy::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
+  border-radius: 0 0 1rem 1rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.btn-siggy > * {
+  position: relative;
+  z-index: 2;
 }
 
 

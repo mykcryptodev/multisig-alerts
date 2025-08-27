@@ -33,7 +33,7 @@ const CustomToast = ({ message, type, isLoading = false }: { message: string; ty
   };
 
   const getAlertClass = () => {
-    const baseClass = 'alert bg-base-200 border-2 !border-solid';
+    const baseClass = 'alert bg-base-200 w-full border-2 !border-solid';
     
     if (isLoading) {
       return `${baseClass} border-info`;
@@ -84,7 +84,7 @@ export const CustomToastContainer = () => {
       draggable
       pauseOnHover
       theme={theme}
-      toastClassName="!p-2 !bg-transparent !rounded-lg"
+      toastClassName="!p-2 !bg-transparent !rounded-lg !bg-red-500"
       closeButton={false}
     />
   );
