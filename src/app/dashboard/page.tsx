@@ -33,6 +33,7 @@ export default function DashboardPage() {
   // Form states
   const [showAddMultisig, setShowAddMultisig] = useState(false);
   const [showTelegramConfig, setShowTelegramConfig] = useState(false);
+  const [showTestAlertModal, setShowTestAlertModal] = useState(false);
   const [newMultisig, setNewMultisig] = useState({
     chainId: 8453, // Base
     address: '',
@@ -343,7 +344,7 @@ export default function DashboardPage() {
               <span className="text-sm sm:text-lg lg:text-xl font-semibold text-center">Setup Telegram</span>
             </button>
             <button
-              onClick={handleTestTelegram}
+              onClick={() => setShowTestAlertModal(true)}
               className="btn-quick-action hover-bounce flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 h-auto"
             >
               <img src="/images/scientist.png" alt="Safe" className="w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 mb-2 sm:mb-6 hover-wiggle mx-auto" />
@@ -356,36 +357,6 @@ export default function DashboardPage() {
               <img src="/images/check.png" alt="Safe" className="w-20 h-20 sm:w-32 sm:h-32 lg:w-44 lg:h-44 mb-2 sm:mb-6 hover-wiggle mx-auto" />
               <span className="text-sm sm:text-lg lg:text-xl font-semibold text-center">Manual Check</span>
             </button>
-          </div>
-          
-          {/* Test Transaction Buttons */}
-          <div className="text-center">
-            <p className="text-sm opacity-70 mb-4">🧪 Test different transaction types:</p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <button
-                onClick={() => handleTestTransactionType('transfer')}
-                className="btn btn-sm btn-outline hover-wiggle"
-                title="Test transfer transaction notifications"
-              >
-                💸 Transfer
-              </button>
-              
-              <button
-                onClick={() => handleTestTransactionType('approval')}
-                className="btn btn-sm btn-outline hover-wiggle"
-                title="Test approval transaction notifications"
-              >
-                ✅ Approval
-              </button>
-              
-              <button
-                onClick={() => handleTestTransactionType('contract')}
-                className="btn btn-sm btn-outline hover-wiggle"
-                title="Test contract call notifications"
-              >
-                📝 Contract
-              </button>
-            </div>
           </div>
         </div>
 
@@ -677,6 +648,60 @@ export default function DashboardPage() {
                 </button>
               </div>
             </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Test Alert Modal */}
+      {showTestAlertModal && (
+        <div className="modal modal-open">
+          <div className="modal-box siggy-gradient rounded-3xl max-w-sm sm:max-w-lg mx-4">
+            <div className="bg-base-100 rounded-2xl p-4 sm:p-6 m-1">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-2xl sm:text-4xl">🧪</span>
+                <h3 className="font-bold text-lg sm:text-2xl siggy-text-gradient-outlined title-medium">Test Your Alert!</h3>
+              </div>
+              <p className="text-sm opacity-70 mb-4">Choose how you'd like to test your alert:</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleTestTelegram}
+                  className="btn btn-sm btn-outline hover-wiggle"
+                  title="Test Telegram notification"
+                >
+                 🔌 Connection
+                </button>
+                <button
+                  onClick={() => handleTestTransactionType('transfer')}
+                  className="btn btn-sm btn-outline hover-wiggle"
+                  title="Test transfer transaction notifications"
+                >
+                  💸 Transfer
+                </button>
+                <button
+                  onClick={() => handleTestTransactionType('approval')}
+                  className="btn btn-sm btn-outline hover-wiggle"
+                  title="Test approval transaction notifications"
+                >
+                  ✅ Approval
+                </button>
+                <button
+                  onClick={() => handleTestTransactionType('contract')}
+                  className="btn btn-sm btn-outline hover-wiggle"
+                  title="Test contract call notifications"
+                >
+                  📝 Contract
+                </button>
+              </div>
+              <div className="modal-action flex items-center gap-2 justify-between mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowTestAlertModal(false)}
+                  className="btn btn-ghost hover-wiggle"
+                >
+                  ❌ Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
