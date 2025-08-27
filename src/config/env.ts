@@ -1,7 +1,7 @@
 // Environment configuration with type safety
 // Using Thirdweb SDK utilities for blockchain operations
 
-import { toTokens, toWei, shortenAddress, toUnits } from 'thirdweb/utils';
+import { toTokens, shortenAddress, toUnits } from 'thirdweb/utils';
 import { defineChain } from 'thirdweb/chains';
 
 export const config = {

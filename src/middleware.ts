@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const authToken = request.cookies.get('auth-token');
   
   // Protected routes
-  const protectedRoutes = ['/dashboard', '/api/multisigs', '/api/notifications'];
+  const protectedRoutes = ['/dashboard', '/admin', '/api/multisigs', '/api/notifications', '/api/admin'];
   const isProtectedRoute = protectedRoutes.some(route => 
     request.nextUrl.pathname.startsWith(route)
   );
@@ -22,7 +22,9 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*',
+    '/admin/:path*',
     '/api/multisigs/:path*',
     '/api/notifications/:path*',
+    '/api/admin/:path*',
   ],
 };

@@ -33,7 +33,7 @@ const CustomToast = ({ message, type, isLoading = false }: { message: string; ty
   };
 
   const getAlertClass = () => {
-    const baseClass = 'alert bg-base-200 border-2 !border-solid';
+    const baseClass = 'alert bg-base-200 w-full border-2 !border-solid';
     
     if (isLoading) {
       return `${baseClass} border-info`;
@@ -84,7 +84,7 @@ export const CustomToastContainer = () => {
       draggable
       pauseOnHover
       theme={theme}
-      toastClassName="!p-2 !bg-transparent !shadow-lg !rounded-lg"
+      toastClassName="!p-2 !bg-transparent !rounded-lg !bg-red-500"
       closeButton={false}
     />
   );
@@ -95,31 +95,31 @@ export const showToast = {
   success: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="success" />, {
       ...options,
-      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
+      className: '!p-2 !bg-transparent !rounded-lg',
     });
   },
   error: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="error" />, {
       ...options,
-      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
+      className: '!p-2 !bg-transparent !rounded-lg',
     });
   },
   warning: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="warning" />, {
       ...options,
-      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
+      className: '!p-2 !bg-transparent !rounded-lg',
     });
   },
   info: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="info" />, {
       ...options,
-      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
+      className: '!p-2 !bg-transparent !rounded-lg',
     });
   },
   pending: (message: string, options?: ToastOptions) => {
     return toast(<CustomToast message={message} type="info" isLoading={true} />, {
       ...options,
-      className: '!p-2 !bg-transparent !shadow-lg !rounded-lg',
+      className: '!p-2 !bg-transparent !rounded-lg',
       autoClose: false,
     });
   },

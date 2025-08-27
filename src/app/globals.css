@@ -1,6 +1,289 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+:root {
+  /* Siggy's vibrant tropical gradient colors */
+  --siggy-cyan: #00D4FF;
+  --siggy-turquoise: #00E5CC;
+  --siggy-mint: #5EF2A0;
+  --siggy-lime: #B8FF6B;
+  --siggy-yellow: #FFE55C;
+  
+  /* Gradient backgrounds - beautiful cyan to yellow tropical gradient */
+  --siggy-gradient: linear-gradient(135deg, #00D4FF 0%, #00E5CC 25%, #5EF2A0 50%, #B8FF6B 75%, #FFE55C 100%);
+  --siggy-gradient-soft: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 229, 204, 0.1) 25%, rgba(94, 242, 160, 0.1) 50%, rgba(184, 255, 107, 0.1) 75%, rgba(255, 229, 92, 0.1) 100%);
+  
+  /* Alternative gradients for variety */
+  --siggy-gradient-reverse: linear-gradient(135deg, #FFE55C 0%, #B8FF6B 25%, #5EF2A0 50%, #00E5CC 75%, #00D4FF 100%);
+}
+
+/* Dark mode - brighter background */
+[data-theme="dark"] {
+  --siggy-gradient-soft: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 229, 204, 0.15) 25%, rgba(94, 242, 160, 0.15) 50%, rgba(184, 255, 107, 0.15) 75%, rgba(255, 229, 92, 0.15) 100%);
+}
+
 body {
   font-family: var(--font-segment), sans-serif;
+}
+
+/* Lilita One for playful headlines */
+.font-lilita {
+  font-family: var(--font-lilita), cursive;
+}
+
+/* Apply Lilita One to all headline elements */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-lilita), cursive;
+}
+
+/* Specific Lilita One utility classes for different use cases */
+.title-hero {
+  font-family: var(--font-lilita), cursive;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.title-large {
+  font-family: var(--font-lilita), cursive;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.title-medium {
+  font-family: var(--font-lilita), cursive;
+  font-weight: 400;
+}
+
+/* Make card titles use Lilita One too */
+.card-title {
+  font-family: var(--font-lilita), cursive !important;
+}
+
+/* Fun, playful animations */
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes pulse-gradient {
+  0%, 100% { 
+    background: linear-gradient(135deg, #00D4FF 0%, #00E5CC 25%, #5EF2A0 50%, #B8FF6B 75%, #FFE55C 100%);
+  }
+  50% { 
+    background: linear-gradient(135deg, #FFE55C 0%, #B8FF6B 25%, #5EF2A0 50%, #00E5CC 75%, #00D4FF 100%);
+  }
+}
+
+/* Siggy-themed utility classes */
+.siggy-gradient {
+  background: var(--siggy-gradient);
+}
+
+.siggy-gradient-soft {
+  background: var(--siggy-gradient-soft);
+}
+
+/* Gradient border - only visible in light mode */
+.border-gradient {
+  border-color: transparent;
+}
+
+[data-theme="light"] .border-gradient,
+:root:not([data-theme="dark"]) .border-gradient {
+  border-image: var(--siggy-gradient) 1;
+}
+
+.siggy-text-gradient {
+  background: var(--siggy-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Black text stroke for Siggy in light mode - regular (1px) */
+.siggy-text-gradient-outlined {
+  background: var(--siggy-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Black text stroke for Siggy in light mode - thick (4px for headlines) */
+.siggy-text-gradient-outlined-thick {
+  background: var(--siggy-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Apply outline only in light mode - regular 1px stroke */
+[data-theme="light"] .siggy-text-gradient-outlined,
+:root:not([data-theme="dark"]) .siggy-text-gradient-outlined {
+  -webkit-text-stroke: 2px black;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Apply outline only in light mode - thick 4px stroke for headlines */
+[data-theme="light"] .siggy-text-gradient-outlined-thick,
+:root:not([data-theme="dark"]) .siggy-text-gradient-outlined-thick {
+  -webkit-text-stroke: 4px black;
+}
+
+.siggy-stroke-gradient {
+  stroke: url(#siggyGradient);
+  fill: none;
+  stroke-width: 2;
+}
+
+.bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.pulse-gradient {
+  animation: pulse-gradient 3s ease-in-out infinite;
+}
+
+/* Oversized, playful elements */
+.btn-siggy {
+  @apply text-xl px-8 py-4 rounded-2xl font-bold transform hover:scale-105 transition-all duration-200 relative;
+  background: var(--siggy-gradient);
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.btn-siggy::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
+  border-radius: 0 0 1rem 1rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.btn-siggy > * {
+  position: relative;
+  z-index: 2;
+}
+
+
+
+.card-siggy {
+  @apply rounded-3xl border-4 border-transparent bg-gradient-to-r p-1;
+  background: var(--siggy-gradient);
+}
+
+.card-siggy-inner {
+  @apply rounded-2xl bg-base-100 h-full;
+}
+
+/* Fun hover effects */
+.hover-wiggle:hover {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.hover-bounce:hover {
+  animation: bounce-gentle 0.6s ease-in-out;
+}
+
+/* Custom scrollbar with Siggy colors */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 212, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--siggy-gradient);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  filter: brightness(1.2);
+}
+
+/* Quick Actions specific button style with gradient overlay */
+.btn-quick-action {
+  @apply text-base sm:text-xl px-4 sm:px-8 py-3 sm:py-4 rounded-2xl font-bold transform hover:scale-105 transition-all duration-200 relative;
+  background: var(--siggy-gradient);
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.btn-quick-action::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+  border-radius: 0 0 1rem 1rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.btn-quick-action > * {
+  position: relative;
+  z-index: 2;
+}
+
+.btn-quick-action:hover {
+  filter: brightness(1.1) saturate(1.2);
+  box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+  cursor: pointer;
+}
+
+/* Additional fun effects for the new tropical theme */
+.btn-siggy:hover {
+  filter: brightness(1.1) saturate(1.2);
+  box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+  cursor: pointer;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  /* Prevent horizontal scrolling */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Ensure all containers respect mobile width */
+  .modal-box {
+    max-width: calc(100vw - 2rem);
+    margin: 0 1rem;
+  }
+  
+  /* Better text handling on mobile */
+  .font-mono {
+    font-size: 0.75rem;
+    word-break: break-all;
+  }
+  
+  /* Responsive card padding */
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* Better mobile button sizing */
+  .btn-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
 }

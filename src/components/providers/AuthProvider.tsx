@@ -130,6 +130,12 @@ export function ConnectWalletButton() {
     <ConnectButton
       theme={theme === 'dark' ? 'dark' : 'light'}
       client={client}
+      connectModal={{
+        showThirdwebBranding: false,
+        size: "wide",
+        title: "Sign In",
+        titleIcon: "/images/siggy.png",
+      }}
       auth={{
         getLoginPayload: async (params) => {
           return generatePayload(params);
