@@ -8,13 +8,13 @@ export async function POST() {
     const telegram = getTelegram();
     
     // Test 1: Send a simple text message
-    const textSent = await telegram.sendMessage('🧪 Testing Telegram connection...');
+    const textSent = await telegram.sendMessage('🦜 Siggy is testing the Telegram connection! *squawk squawk*');
     
     if (!textSent) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Failed to send text message. Check your Telegram configuration.',
+          message: '🦜 Siggy couldn\'t send the text message! Check your Telegram configuration, something\'s not quite right...',
         },
         { status: 500 }
       );
@@ -66,7 +66,7 @@ export async function POST() {
       if (imageSent) {
         return NextResponse.json({
           success: true,
-          message: 'Telegram test successful! Both text message and OG image sent.',
+          message: '🦜 Siggy successfully sent both the text message AND the beautiful tropical OG image! *happy squawk*',
           tests: {
             textMessage: 'Passed',
             ogImage: 'Passed',
@@ -75,7 +75,7 @@ export async function POST() {
       } else {
         return NextResponse.json({
           success: true,
-          message: '⚠️ Telegram text message sent, but OG image failed. Check console for details.',
+          message: '🦜 Siggy sent the text message, but the OG image didn\'t work. *confused squawk* Check console for details.',
           tests: {
             textMessage: 'Passed',
             ogImage: 'Failed',
@@ -87,7 +87,7 @@ export async function POST() {
       
       return NextResponse.json({
         success: true,
-        message: '⚠️ Telegram text message sent, but OG image generation failed. Check console for details.',
+        message: '🦜 Siggy sent the text message, but the OG image generation went squawk! *worried chirp* Check console for details.',
         tests: {
           textMessage: 'Passed',
           ogImage: 'Error',
@@ -103,7 +103,7 @@ export async function POST() {
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        message: 'Failed to test Telegram connection. Check your configuration and console logs.',
+        message: '🦜 Siggy couldn\'t test the Telegram connection! *distressed squawk* Check your configuration and console logs.',
       },
       { status: 500 }
     );
